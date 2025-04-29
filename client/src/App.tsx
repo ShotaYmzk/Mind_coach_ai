@@ -11,6 +11,7 @@ import Coaching from "@/pages/coaching";
 import Assessment from "@/pages/assessment";
 import Resources from "@/pages/resources";
 import Profile from "@/pages/profile";
+import Reservation from "@/pages/reservation";
 import { AuthProvider } from "@/lib/auth";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
@@ -29,6 +30,7 @@ function Router() {
           <Route path="/assessment" component={Assessment} />
           <Route path="/resources" component={Resources} />
           <Route path="/profile" component={Profile} />
+          <Route path="/reservation" component={Reservation} />
           <Route component={NotFound} />
         </Switch>
       </div>

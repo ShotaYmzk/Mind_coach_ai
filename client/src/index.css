@@ -3,82 +3,82 @@
 @tailwind utilities;
 
 :root {
-  --background: 0 0% 100%;
+  --background: 40 30% 98%;
   --foreground: 20 14.3% 4.1%;
-  --muted: 60 4.8% 95.9%;
+  --muted: 30 4.8% 95.9%;
   --muted-foreground: 25 5.3% 44.7%;
-  --popover: 0 0% 100%;
+  --popover: 40 30% 98%;
   --popover-foreground: 20 14.3% 4.1%;
   --card: 0 0% 100%;
   --card-foreground: 20 14.3% 4.1%;
   --border: 20 5.9% 90%;
   --input: 20 5.9% 90%;
-  --primary: 223 90% 65%;
-  --primary-foreground: 211 100% 99%;
-  --secondary: 172 63% 54%;
-  --secondary-foreground: 173 64% 12%;
-  --accent: 39 100% 65%;
-  --accent-foreground: 39 61% 13%;
+  --primary: 15 80% 50%;
+  --primary-foreground: 10 100% 99%;
+  --secondary: 30 80% 60%;
+  --secondary-foreground: 30 30% 15%;
+  --accent: 40 100% 65%;
+  --accent-foreground: 40 61% 13%;
   --destructive: 0 84.2% 60.2%;
   --destructive-foreground: 60 9.1% 97.8%;
-  --ring: 20 14.3% 4.1%;
-  --radius: 0.5rem;
+  --ring: 15 80% 50%;
+  --radius: 0.75rem;
 
-  /* Chart colors */
-  --chart-1: 223 90% 65%;
-  --chart-2: 172 63% 54%;
-  --chart-3: 39 100% 65%;
-  --chart-4: 0 84.2% 60.2%;
-  --chart-5: 262 83% 58%;
+  /* Chart colors - warm color palette */
+  --chart-1: 15 80% 50%;
+  --chart-2: 30 80% 60%;
+  --chart-3: 40 100% 65%;
+  --chart-4: 0 70% 65%;
+  --chart-5: 350 80% 60%;
 
   /* Sidebar colors - not used in this app but needed for shadcn */
-  --sidebar-background: 0 0% 100%;
+  --sidebar-background: 40 30% 98%;
   --sidebar-foreground: 20 14.3% 4.1%;
-  --sidebar-primary: 223 90% 65%;
-  --sidebar-primary-foreground: 211 100% 99%;
-  --sidebar-accent: 172 63% 54%;
-  --sidebar-accent-foreground: 173 64% 12%;
+  --sidebar-primary: 15 80% 50%;
+  --sidebar-primary-foreground: 10 100% 99%;
+  --sidebar-accent: 30 80% 60%;
+  --sidebar-accent-foreground: 30 30% 15%;
   --sidebar-border: 20 5.9% 90%;
-  --sidebar-ring: 223 90% 65%;
+  --sidebar-ring: 15 80% 50%;
 }
 
 .dark {
-  --background: 240 10% 3.9%;
-  --foreground: 0 0% 98%;
-  --muted: 240 3.7% 15.9%;
-  --muted-foreground: 240 5% 64.9%;
-  --popover: 240 10% 3.9%;
-  --popover-foreground: 0 0% 98%;
-  --card: 240 10% 3.9%;
-  --card-foreground: 0 0% 98%;
-  --border: 240 3.7% 15.9%;
-  --input: 240 3.7% 15.9%;
-  --primary: 223 90% 65%;
-  --primary-foreground: 211 100% 99%;
-  --secondary: 172 63% 54%;
-  --secondary-foreground: 173 64% 12%;
-  --accent: 39 100% 65%;
-  --accent-foreground: 39 61% 13%;
+  --background: 15 15% 12%;
+  --foreground: 30 20% 98%;
+  --muted: 15 10% 20%;
+  --muted-foreground: 30 15% 70%;
+  --popover: 15 15% 12%;
+  --popover-foreground: 30 20% 98%;
+  --card: 15 15% 12%;
+  --card-foreground: 30 20% 98%;
+  --border: 15 10% 20%;
+  --input: 15 10% 20%;
+  --primary: 15 80% 45%;
+  --primary-foreground: 10 100% 99%;
+  --secondary: 30 70% 50%;
+  --secondary-foreground: 30 30% 95%;
+  --accent: 40 90% 60%;
+  --accent-foreground: 40 61% 13%;
   --destructive: 0 62.8% 30.6%;
   --destructive-foreground: 0 0% 98%;
-  --ring: 240 4.9% 83.9%;
+  --ring: 15 80% 45%;
   
-  /* Chart colors */
-  --chart-1: 223 90% 65%;
-  --chart-2: 172 63% 54%;
-  --chart-3: 39 100% 65%;
-  --chart-4: 0 84.2% 60.2%;
-  --chart-5: 262 83% 58%;
+  /* Chart colors - warm color palette */
+  --chart-1: 15 80% 50%;
+  --chart-2: 30 80% 60%;
+  --chart-3: 40 100% 65%;
+  --chart-4: 0 70% 65%;
+  --chart-5: 350 80% 60%;
 
   /* Sidebar colors */
-  --sidebar-background: 240 10% 3.9%;
-  --sidebar-foreground: 0 0% 98%;
-  --sidebar-primary: 223 90% 65%;
-  --sidebar-primary-foreground: 211 100% 99%;
-  --sidebar-accent: 172 63% 54%;
-  --sidebar-accent-foreground: 173 64% 12%;
-  --sidebar-border: 240 3.7% 15.9%;
-  --sidebar-ring: 223 90% 65%;
+  --sidebar-background: 15 15% 12%;
+  --sidebar-foreground: 30 20% 98%;
+  --sidebar-primary: 15 80% 45%;
+  --sidebar-primary-foreground: 10 100% 99%;
+  --sidebar-accent: 30 70% 50%;
+  --sidebar-accent-foreground: 30 30% 95%;
+  --sidebar-border: 15 10% 20%;
+  --sidebar-ring: 15 80% 45%;
 }
 
 @layer base {
