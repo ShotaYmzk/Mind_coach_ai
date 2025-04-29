@@ -255,4 +255,13 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// Import DatabaseStorage class
+import { DatabaseStorage } from "./database-storage";
+
+// Create storage instance with DatabaseStorage instead of MemStorage
+export const storage = new DatabaseStorage();
+
+// Seed initial data
+storage.seedInitialData().catch(err => {
+  console.error("Error seeding initial data:", err);
+});
