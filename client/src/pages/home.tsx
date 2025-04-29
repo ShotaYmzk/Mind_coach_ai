@@ -8,7 +8,7 @@ import StatCard from "@/components/stat-card";
 import MoodTracker from "@/components/mood-tracker";
 import ChatInterface from "@/components/chat-interface";
 import ProfileCard from "@/components/profile-card";
-import { ResourcesList } from "@/components/resource-card";
+
 import { useQuery } from "@tanstack/react-query";
 import { BrainCog, CalendarCheck, Activity } from "lucide-react";
 
@@ -195,15 +195,7 @@ export default function Home() {
             </CardContent>
           </Card>
           
-          {/* Resources */}
-          <Card className="shadow-card">
-            <CardContent className="p-6">
-              <h3 className="text-lg font-heading font-medium text-neutral-900 mb-4">
-                おすすめリソース
-              </h3>
-              <ResourcesList resources={resources.slice(0, 3)} />
-            </CardContent>
-          </Card>
+
 
           {/* Human Coaching Promotion */}
           <Card className="shadow-card bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">

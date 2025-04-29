@@ -75,18 +75,20 @@ export default function Coaching() {
         <p className="text-neutral-600 max-w-2xl mb-4">
           あなたの考え、感情、目標についてAIコーチと会話しましょう。どんな気持ちでも、あなたの声に耳を傾け、ガイダンスを提供します。
         </p>
-        <div className="flex items-center bg-primary-50 border border-primary-200 rounded-lg p-4 mt-2 mb-4">
-          <div className="flex-shrink-0 bg-white p-2 rounded-full">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-600">
-              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <p className="text-primary-900 font-medium">人間のコーチとの予約も可能です</p>
-            <p className="text-primary-700 text-sm">より個別化されたサポートが必要な場合は、専門家とのセッションを予約しましょう</p>
-            <Link href="/reservation" className="mt-2 inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-500">
-              予約ページへ <span className="ml-1">→</span>
-            </Link>
+        <div className="bg-gradient-to-r from-amber-50 to-amber-100 border border-amber-200 rounded-lg p-5 mt-4 mb-6 shadow-sm">
+          <div className="flex items-start">
+            <div className="flex-shrink-0 bg-white p-2 rounded-full shadow-sm">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-500">
+                <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+              </svg>
+            </div>
+            <div className="ml-4">
+              <h3 className="text-amber-900 font-medium text-lg mb-1">人間のプロフェッショナルコーチにアップグレード</h3>
+              <p className="text-amber-800 text-sm mb-3">AIサポートに加えて、より深いガイダンスと個別化されたサポートを受けられます。専門資格を持つコーチがあなたの目標達成をサポートします。</p>
+              <Link href="/reservation" className="inline-flex items-center bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-md font-medium text-sm shadow-sm transition-colors">
+                今すぐセッションを予約する <span className="ml-1">→</span>
+              </Link>
+            </div>
           </div>
         </div>
       </div>

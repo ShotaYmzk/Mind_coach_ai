@@ -9,7 +9,7 @@ import Login from "@/pages/login";
 import Register from "@/pages/register";
 import Coaching from "@/pages/coaching";
 import Assessment from "@/pages/assessment";
-import Resources from "@/pages/resources";
+
 import Profile from "@/pages/profile";
 import Reservation from "@/pages/reservation";
 import { AuthProvider } from "@/lib/auth";
@@ -28,7 +28,7 @@ function Router() {
           <Route path="/register" component={Register} />
           <Route path="/coaching" component={Coaching} />
           <Route path="/assessment" component={Assessment} />
-          <Route path="/resources" component={Resources} />
+
           <Route path="/profile" component={Profile} />
           <Route path="/reservation" component={Reservation} />
           <Route component={NotFound} />

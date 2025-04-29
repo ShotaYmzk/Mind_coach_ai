@@ -21,7 +21,6 @@ export default function Navbar() {
     { name: "ホーム", href: "/" },
     { name: "コーチング", href: "/coaching" },
     { name: "診断・分析", href: "/assessment" },
-    { name: "リソース", href: "/resources" },
     { name: "人間コーチ予約", href: "/reservation" },
   ];
 
@@ -35,7 +34,7 @@ export default function Navbar() {
                 <BrainCog className="h-5 w-5 text-white" />
               </div>
               <span className="font-heading font-semibold text-xl text-neutral-800">
-                MindCoach AI
+                メンタルAI
               </span>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
