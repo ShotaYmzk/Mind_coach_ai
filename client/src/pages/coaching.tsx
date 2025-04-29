@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
-import { useLocation } from "wouter";
+import { useLocation, Link } from "wouter";
 import ChatInterface from "@/components/chat-interface";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -72,9 +72,23 @@ export default function Coaching() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-24 pb-16">
       <div className="mb-8">
         <h1 className="text-3xl font-heading font-bold text-neutral-900 mb-2">AIコーチング</h1>
-        <p className="text-neutral-600 max-w-2xl">
+        <p className="text-neutral-600 max-w-2xl mb-4">
           あなたの考え、感情、目標についてAIコーチと会話しましょう。どんな気持ちでも、あなたの声に耳を傾け、ガイダンスを提供します。
         </p>
+        <div className="flex items-center bg-primary-50 border border-primary-200 rounded-lg p-4 mt-2 mb-4">
+          <div className="flex-shrink-0 bg-white p-2 rounded-full">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-primary-600">
+              <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+            </svg>
+          </div>
+          <div className="ml-3">
+            <p className="text-primary-900 font-medium">人間のコーチとの予約も可能です</p>
+            <p className="text-primary-700 text-sm">より個別化されたサポートが必要な場合は、専門家とのセッションを予約しましょう</p>
+            <Link href="/reservation" className="mt-2 inline-flex items-center text-sm font-medium text-primary-600 hover:text-primary-500">
+              予約ページへ <span className="ml-1">→</span>
+            </Link>
+          </div>
+        </div>
       </div>
       
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">

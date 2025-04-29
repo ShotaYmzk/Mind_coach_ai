@@ -204,6 +204,33 @@ export default function Home() {
               <ResourcesList resources={resources.slice(0, 3)} />
             </CardContent>
           </Card>
+
+          {/* Human Coaching Promotion */}
+          <Card className="shadow-card bg-gradient-to-br from-amber-50 to-amber-100 border-amber-200">
+            <CardContent className="p-6">
+              <div className="flex items-center mb-4">
+                <div className="h-10 w-10 rounded-full bg-amber-100 border border-amber-200 flex items-center justify-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-amber-600">
+                    <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h4 className="text-sm font-medium text-amber-900">人間のコーチとセッション</h4>
+                  <p className="text-xs text-amber-700">パーソナライズされたサポート</p>
+                </div>
+              </div>
+              <p className="text-sm text-amber-800 mb-4">
+                専門的な資格を持つコーチによる1対1の相談で、より深いサポートを受けられます。
+              </p>
+              <Link href="/reservation">
+                <Button
+                  className="w-full bg-amber-500 hover:bg-amber-600 text-white border-amber-600"
+                >
+                  予約する
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
