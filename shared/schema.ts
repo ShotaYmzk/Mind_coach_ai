@@ -25,7 +25,8 @@ export const moodEntries = pgTable("mood_entries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   rating: integer("rating").notNull(),
-  notes: text("notes"),
+  note: text("note"),
+  triggers: text("triggers"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -81,9 +82,11 @@ export const insertChatMessageSchema = createInsertSchema(chatMessages).omit({
 export const assessments = pgTable("assessments", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
-  type: text("type").notNull(),
+  type: text("type").notNull(), // 'general', 'stress', 'depression', 'anxiety', 'burnout'
   results: json("results").notNull(),
   score: integer("score"),
+  summary: text("summary"),
+  recommendations: json("recommendations"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 

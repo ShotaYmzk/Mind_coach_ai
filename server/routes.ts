@@ -179,10 +179,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const createdMood = await storage.createMoodEntry(moodData);
       
-      // Get AI analysis if notes are provided
+      // Get AI analysis if note is provided
       let analysis = "";
-      if (moodData.notes) {
-        analysis = await analyzeMoodEntry(moodData.rating, moodData.notes);
+      if (moodData.note) {
+        analysis = await analyzeMoodEntry(moodData.rating, moodData.note);
       }
       
       res.status(201).json({ ...createdMood, analysis });
@@ -352,9 +352,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Save assessment
       const assessmentData = insertAssessmentSchema.parse({
         userId: user.id,
-        type: "mental_health",
+        type: req.body.type || "mental_health",
         results: answers,
-        score: result.score
+        score: result.score,
+        summary: result.summary,
+        recommendations: result.recommendations
       });
       
       const savedAssessment = await storage.createAssessment(assessmentData);

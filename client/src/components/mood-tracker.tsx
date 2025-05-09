@@ -113,8 +113,8 @@ export default function MoodTracker() {
             <div className="h-64 relative">
               <canvas ref={chartRef} />
             </div>
-            <div className="mt-4 text-center">
-              <p className="text-sm text-neutral-600 mb-2">今日の気分はいかがですか？</p>
+            <div className="mt-4">
+              <p className="text-sm text-neutral-600 mb-2 text-center">今日の気分はいかがですか？</p>
               <div className="flex items-center justify-between mx-auto max-w-md mb-2">
                 <span className="text-xl">{getMoodEmoji(1)}</span>
                 <span className="text-xl">{getMoodEmoji(4)}</span>
@@ -131,14 +131,94 @@ export default function MoodTracker() {
                   onValueChange={(value) => setCurrentMood(value[0])}
                 />
               </div>
-              <Button
-                onClick={() => submitMood()}
-                disabled={isPending}
-                className="mt-2"
-              >
-                {isPending ? "送信中..." : "今日の気分を記録"}
-              </Button>
+              
+              {/* メモと引き金 */}
+              <div className="mt-6 mb-4 space-y-4">
+                <div>
+                  <Label htmlFor="note" className="text-sm">メモ (任意)</Label>
+                  <Textarea
+                    id="note"
+                    placeholder="今日の気分について、何か書き留めておきたいことはありますか？"
+                    className="mt-1"
+                    value={note}
+                    onChange={(e) => setNote(e.target.value)}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="triggers" className="text-sm">気分の引き金 (任意)</Label>
+                  <Textarea
+                    id="triggers"
+                    placeholder="今日の気分に影響を与えた出来事や状況があれば記入してください"
+                    className="mt-1"
+                    value={triggers}
+                    onChange={(e) => setTriggers(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="text-center mt-4">
+                <Button
+                  onClick={() => submitMood()}
+                  disabled={isPending}
+                  className="mt-2"
+                >
+                  {isPending ? "送信中..." : "今日の気分を記録"}
+                </Button>
+              </div>
             </div>
+            
+            {/* 過去の記録を見るダイアログ */}
+            {moodEntries && Array.isArray(moodEntries) && moodEntries.length > 0 && (
+              <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button variant="outline" className="w-full mt-4">過去の記録を見る</Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-md">
+                  <DialogHeader>
+                    <DialogTitle>気分の記録履歴</DialogTitle>
+                    <DialogDescription>
+                      過去の気分とメモの記録を確認できます
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="max-h-[60vh] overflow-y-auto space-y-4 py-4">
+                    {moodEntries.map((entry: any) => (
+                      <Card key={entry.id} className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <span className="text-xl">{getMoodEmoji(entry.rating)}</span>
+                            <span className="font-medium">{entry.rating}/10</span>
+                          </div>
+                          <span className="text-sm text-neutral-500">
+                            {format(new Date(entry.createdAt), 'yyyy年MM月dd日 HH:mm')}
+                          </span>
+                        </div>
+                        
+                        {entry.note && (
+                          <div className="mt-2">
+                            <Label className="text-xs">メモ</Label>
+                            <p className="text-sm mt-1">{entry.note}</p>
+                          </div>
+                        )}
+                        
+                        {entry.triggers && (
+                          <div className="mt-2">
+                            <Label className="text-xs">気分の引き金</Label>
+                            <p className="text-sm mt-1">{entry.triggers}</p>
+                          </div>
+                        )}
+                      </Card>
+                    ))}
+                  </div>
+                  
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setIsDialogOpen(false)}>
+                      閉じる
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            )}
           </>
         )}
       </CardContent>
