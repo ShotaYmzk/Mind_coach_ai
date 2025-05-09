@@ -2,8 +2,17 @@ import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { z } from "zod";
-import { insertUserSchema, insertMoodEntrySchema, insertGoalSchema, insertChatSessionSchema, insertChatMessageSchema, insertAssessmentSchema } from "@shared/schema";
+import { 
+  insertUserSchema, 
+  insertMoodEntrySchema, 
+  insertGoalSchema, 
+  insertChatSessionSchema, 
+  insertChatMessageSchema, 
+  insertAssessmentSchema,
+  insertReservationSchema 
+} from "@shared/schema";
 import { analyzeMentalHealthAssessment, getChatResponse, analyzeMoodEntry, mentalHealthQuestions } from "./ai";
+import { generateMeetingUrl } from "./meeting";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
@@ -73,6 +82,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return next();
     }
     res.status(401).json({ message: "認証が必要です" });
+  };
+  
+  // Admin middleware
+  const isAdmin = (req: Request, res: Response, next: Function) => {
+    if (!req.isAuthenticated()) {
+      return res.status(401).json({ message: "認証が必要です" });
+    }
+    
+    const user = req.user as any;
+    if (user.planType !== "admin") {
+      return res.status(403).json({ message: "管理者権限が必要です" });
+    }
+    
+    return next();
   };
   
   // Auth routes
@@ -384,6 +407,202 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(resource);
     } catch (error) {
       res.status(500).json({ message: "リソースの取得中にエラーが発生しました" });
+    }
+  });
+  
+  // Coach routes
+  app.get("/api/coaches", async (req, res) => {
+    try {
+      const coaches = await storage.getAllCoaches();
+      res.json(coaches);
+    } catch (error) {
+      res.status(500).json({ message: "コーチの取得中にエラーが発生しました" });
+    }
+  });
+  
+  app.get("/api/coaches/:id", async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const coach = await storage.getCoachById(id);
+      
+      if (!coach) {
+        return res.status(404).json({ message: "コーチが見つかりません" });
+      }
+      
+      res.json(coach);
+    } catch (error) {
+      res.status(500).json({ message: "コーチの取得中にエラーが発生しました" });
+    }
+  });
+  
+  // Reservation routes
+  app.post("/api/reservations", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      
+      // 予約データの検証
+      const reservationData = insertReservationSchema.parse({
+        ...req.body,
+        userId: user.id,
+        status: "pending" // 初期ステータスは「保留中」
+      });
+      
+      // 予約の作成（Meeting URLは自動生成）
+      const createdReservation = await storage.createReservation(reservationData);
+      res.status(201).json(createdReservation);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "入力データが無効です", errors: error.errors });
+      }
+      res.status(500).json({ message: "予約作成中にエラーが発生しました" });
+    }
+  });
+  
+  app.get("/api/reservations", isAuthenticated, async (req, res) => {
+    try {
+      const user = req.user as any;
+      const reservations = await storage.getReservationsByUserId(user.id);
+      res.json(reservations);
+    } catch (error) {
+      res.status(500).json({ message: "予約の取得中にエラーが発生しました" });
+    }
+  });
+  
+  app.patch("/api/reservations/:id/status", isAuthenticated, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({ message: "有効なステータスが必要です" });
+      }
+      
+      const reservation = await storage.getReservationById(id);
+      if (!reservation) {
+        return res.status(404).json({ message: "予約が見つかりません" });
+      }
+      
+      // ユーザーは自分の予約のみキャンセル可能
+      const user = req.user as any;
+      if (reservation.userId !== user.id && user.planType !== "admin") {
+        return res.status(403).json({ message: "この操作を実行する権限がありません" });
+      }
+      
+      // 一般ユーザーは予約のキャンセルのみ可能
+      if (user.planType !== "admin" && status !== "canceled") {
+        return res.status(403).json({ message: "この操作を実行する権限がありません" });
+      }
+      
+      const updatedReservation = await storage.updateReservationStatus(id, status);
+      res.json(updatedReservation);
+    } catch (error) {
+      res.status(500).json({ message: "予約ステータスの更新中にエラーが発生しました" });
+    }
+  });
+  
+  // Admin routes
+  app.get("/api/admin/users", isAdmin, async (req, res) => {
+    try {
+      // すべてのユーザーを取得するには一旦すべてのIDを取得する必要がある
+      // 実際のアプリケーションでは、データベースからすべてのユーザーを取得する専用のメソッドを用意する
+      const users = [];
+      
+      // 1から始めて、ユーザーが見つからなくなるまで取得を試みる
+      for (let i = 1; i <= 100; i++) {
+        const user = await storage.getUser(i);
+        if (user) {
+          // パスワードは除外
+          const { password, ...userWithoutPassword } = user;
+          users.push(userWithoutPassword);
+        }
+      }
+      
+      res.json(users);
+    } catch (error) {
+      res.status(500).json({ message: "ユーザーの取得中にエラーが発生しました" });
+    }
+  });
+  
+  app.get("/api/admin/reservations", isAdmin, async (req, res) => {
+    try {
+      // すべての予約を取得するには一旦すべてのユーザーIDを取得する必要がある
+      // 実際のアプリケーションでは、データベースからすべての予約を取得する専用のメソッドを用意する
+      const reservations = [];
+      
+      // ユーザーごとに予約を取得
+      for (let i = 1; i <= 100; i++) {
+        const user = await storage.getUser(i);
+        if (user) {
+          const userReservations = await storage.getReservationsByUserId(user.id);
+          if (userReservations.length > 0) {
+            // ユーザー名を追加
+            const reservationsWithUserName = userReservations.map(res => ({
+              ...res,
+              userName: user.name
+            }));
+            reservations.push(...reservationsWithUserName);
+          }
+        }
+      }
+      
+      // 日付順に並べ替え
+      reservations.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+      
+      res.json(reservations);
+    } catch (error) {
+      res.status(500).json({ message: "予約の取得中にエラーが発生しました" });
+    }
+  });
+  
+  app.get("/api/admin/coaches", isAdmin, async (req, res) => {
+    try {
+      const coaches = await storage.getAllCoaches();
+      res.json(coaches);
+    } catch (error) {
+      res.status(500).json({ message: "コーチの取得中にエラーが発生しました" });
+    }
+  });
+  
+  app.patch("/api/admin/reservations/:id/status", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status } = req.body;
+      
+      if (!status || typeof status !== "string") {
+        return res.status(400).json({ message: "有効なステータスが必要です" });
+      }
+      
+      // 許可されたステータスの確認
+      const allowedStatuses = ["pending", "confirmed", "canceled", "completed"];
+      if (!allowedStatuses.includes(status)) {
+        return res.status(400).json({ message: "無効なステータスです" });
+      }
+      
+      const updatedReservation = await storage.updateReservationStatus(id, status);
+      res.json(updatedReservation);
+    } catch (error) {
+      res.status(500).json({ message: "予約ステータスの更新中にエラーが発生しました" });
+    }
+  });
+  
+  app.patch("/api/admin/coaches/:id/availability", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { availability } = req.body;
+      
+      if (!availability) {
+        return res.status(400).json({ message: "有効な可用性データが必要です" });
+      }
+      
+      const coach = await storage.getCoachById(id);
+      if (!coach) {
+        return res.status(404).json({ message: "コーチが見つかりません" });
+      }
+      
+      const updatedCoach = await storage.updateCoachAvailability(id, JSON.stringify(availability));
+      res.json(updatedCoach);
+    } catch (error) {
+      res.status(500).json({ message: "コーチ可用性の更新中にエラーが発生しました" });
     }
   });
 
