@@ -12,7 +12,11 @@ import {
   type Assessment,
   type InsertAssessment,
   type Resource,
-  type InsertResource
+  type InsertResource,
+  type Reservation,
+  type InsertReservation,
+  type Coach,
+  type InsertCoach
 } from "@shared/schema";
 
 export interface IStorage {
@@ -48,6 +52,18 @@ export interface IStorage {
   createResource(resource: InsertResource): Promise<Resource>;
   getAllResources(): Promise<Resource[]>;
   getResourceById(id: number): Promise<Resource | undefined>;
+  
+  // Reservation methods
+  createReservation(reservation: InsertReservation): Promise<Reservation>;
+  getReservationsByUserId(userId: number): Promise<Reservation[]>;
+  getReservationById(id: number): Promise<Reservation | undefined>;
+  updateReservationStatus(id: number, status: string): Promise<Reservation>;
+  
+  // Coach methods
+  createCoach(coach: InsertCoach): Promise<Coach>;
+  getAllCoaches(): Promise<Coach[]>;
+  getCoachById(id: number): Promise<Coach | undefined>;
+  updateCoachAvailability(id: number, availability: any): Promise<Coach>;
 }
 
 export class MemStorage implements IStorage {
@@ -58,6 +74,8 @@ export class MemStorage implements IStorage {
   private chatMessages: Map<number, ChatMessage>;
   private assessments: Map<number, Assessment>;
   private resources: Map<number, Resource>;
+  private reservations: Map<number, Reservation>;
+  private coaches: Map<number, Coach>;
   
   private currentUserId: number;
   private currentMoodEntryId: number;
@@ -66,6 +84,8 @@ export class MemStorage implements IStorage {
   private currentChatMessageId: number;
   private currentAssessmentId: number;
   private currentResourceId: number;
+  private currentReservationId: number;
+  private currentCoachId: number;
 
   constructor() {
     this.users = new Map();
@@ -75,6 +95,8 @@ export class MemStorage implements IStorage {
     this.chatMessages = new Map();
     this.assessments = new Map();
     this.resources = new Map();
+    this.reservations = new Map();
+    this.coaches = new Map();
     
     this.currentUserId = 1;
     this.currentMoodEntryId = 1;
@@ -83,9 +105,67 @@ export class MemStorage implements IStorage {
     this.currentChatMessageId = 1;
     this.currentAssessmentId = 1;
     this.currentResourceId = 1;
+    this.currentReservationId = 1;
+    this.currentCoachId = 1;
     
     // Add sample resources
     this.initializeResources();
+    
+    // Add sample coaches
+    this.initializeCoaches();
+  }
+  
+  private initializeCoaches() {
+    const sampleCoaches: InsertCoach[] = [
+      {
+        name: "田中 智子",
+        email: "tanaka.satoko@mental-ai.jp",
+        specialty: "anxiety",
+        bio: "10年以上の臨床経験を持つ心理カウンセラー。不安障害と自己肯定感向上を専門としています。",
+        imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80",
+        availability: JSON.stringify([
+          {
+            day: "月曜日",
+            slots: ["10:00", "11:00", "14:00", "15:00", "16:00"]
+          },
+          {
+            day: "水曜日",
+            slots: ["13:00", "14:00", "15:00", "16:00", "17:00"]
+          },
+          {
+            day: "金曜日",
+            slots: ["10:00", "11:00", "12:00"]
+          }
+        ]),
+        isActive: true
+      },
+      {
+        name: "佐藤 健太",
+        email: "sato.kenta@mental-ai.jp",
+        specialty: "career",
+        bio: "経営コンサルタントからキャリアコーチに転向。キャリア不安や職場でのストレス対処を得意としています。",
+        imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80",
+        availability: JSON.stringify([
+          {
+            day: "火曜日",
+            slots: ["18:00", "19:00", "20:00"]
+          },
+          {
+            day: "木曜日",
+            slots: ["18:00", "19:00", "20:00"]
+          },
+          {
+            day: "土曜日",
+            slots: ["10:00", "11:00", "12:00", "13:00", "14:00"]
+          }
+        ]),
+        isActive: true
+      }
+    ];
+    
+    sampleCoaches.forEach(coach => {
+      this.createCoach(coach);
+    });
   }
 
   private initializeResources() {
@@ -252,6 +332,75 @@ export class MemStorage implements IStorage {
   
   async getResourceById(id: number): Promise<Resource | undefined> {
     return this.resources.get(id);
+  }
+  
+  // Reservation methods
+  async createReservation(insertReservation: InsertReservation): Promise<Reservation> {
+    const id = this.currentReservationId++;
+    const createdAt = new Date();
+    
+    // Generate a meeting URL for this reservation
+    const meetingUrl = `https://meet.google.com/${Math.random().toString(36).substring(2, 10)}-${Math.random().toString(36).substring(2, 6)}-${Math.random().toString(36).substring(2, 6)}`;
+    
+    const reservation: Reservation = { 
+      ...insertReservation, 
+      id, 
+      createdAt,
+      meetingUrl
+    };
+    this.reservations.set(id, reservation);
+    return reservation;
+  }
+  
+  async getReservationsByUserId(userId: number): Promise<Reservation[]> {
+    return Array.from(this.reservations.values())
+      .filter(reservation => reservation.userId === userId)
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  }
+  
+  async getReservationById(id: number): Promise<Reservation | undefined> {
+    return this.reservations.get(id);
+  }
+  
+  async updateReservationStatus(id: number, status: string): Promise<Reservation> {
+    const reservation = this.reservations.get(id);
+    if (!reservation) {
+      throw new Error(`Reservation with id ${id} not found`);
+    }
+    
+    const updatedReservation: Reservation = { ...reservation, status };
+    this.reservations.set(id, updatedReservation);
+    return updatedReservation;
+  }
+  
+  // Coach methods
+  async createCoach(insertCoach: InsertCoach): Promise<Coach> {
+    const id = this.currentCoachId++;
+    const createdAt = new Date();
+    const coach: Coach = { ...insertCoach, id, createdAt };
+    this.coaches.set(id, coach);
+    return coach;
+  }
+  
+  async getAllCoaches(): Promise<Coach[]> {
+    return Array.from(this.coaches.values())
+      .filter(coach => coach.isActive)
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+  
+  async getCoachById(id: number): Promise<Coach | undefined> {
+    return this.coaches.get(id);
+  }
+  
+  async updateCoachAvailability(id: number, availability: any): Promise<Coach> {
+    const coach = this.coaches.get(id);
+    if (!coach) {
+      throw new Error(`Coach with id ${id} not found`);
+    }
+    
+    const updatedCoach: Coach = { ...coach, availability };
+    this.coaches.set(id, updatedCoach);
+    return updatedCoach;
   }
 }
 

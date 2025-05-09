@@ -3,15 +3,19 @@ import { db } from "./db";
 import { asc, desc, eq } from "drizzle-orm";
 import {
   users, moodEntries, goals, chatSessions, chatMessages, assessments, resources,
+  reservations, coaches,
   type User, type InsertUser,
   type MoodEntry, type InsertMoodEntry,
   type Goal, type InsertGoal,
   type ChatSession, type InsertChatSession,
   type ChatMessage, type InsertChatMessage,
   type Assessment, type InsertAssessment,
-  type Resource, type InsertResource
+  type Resource, type InsertResource,
+  type Reservation, type InsertReservation,
+  type Coach, type InsertCoach
 } from "@shared/schema";
 import { IStorage } from "./storage";
+import { generateMeetingUrl } from "./meeting";
 
 export class DatabaseStorage implements IStorage {
   // User methods
@@ -135,6 +139,77 @@ export class DatabaseStorage implements IStorage {
     return resource || undefined;
   }
 
+  // Reservation methods
+  async createReservation(insertReservation: InsertReservation): Promise<Reservation> {
+    // ダミーのMeeting URLを生成
+    const date = new Date(insertReservation.date);
+    const name = "user"; // 実際にはユーザー名を取得するロジックが必要
+    const meetingUrl = generateMeetingUrl(date, name);
+    
+    // 既存の値を保持しつつ、meetingUrlを追加
+    const reservationWithMeeting = {
+      ...insertReservation,
+      meetingUrl
+    };
+    
+    const [reservation] = await db.insert(reservations).values(reservationWithMeeting).returning();
+    return reservation;
+  }
+
+  async getReservationsByUserId(userId: number): Promise<Reservation[]> {
+    return await db.select().from(reservations)
+      .where(eq(reservations.userId, userId))
+      .orderBy(asc(reservations.date));
+  }
+
+  async getReservationById(id: number): Promise<Reservation | undefined> {
+    const [reservation] = await db.select().from(reservations).where(eq(reservations.id, id));
+    return reservation || undefined;
+  }
+
+  async updateReservationStatus(id: number, status: string): Promise<Reservation> {
+    const [updatedReservation] = await db.update(reservations)
+      .set({ status })
+      .where(eq(reservations.id, id))
+      .returning();
+
+    if (!updatedReservation) {
+      throw new Error(`Reservation with id ${id} not found`);
+    }
+
+    return updatedReservation;
+  }
+
+  // Coach methods
+  async createCoach(insertCoach: InsertCoach): Promise<Coach> {
+    const [coach] = await db.insert(coaches).values(insertCoach).returning();
+    return coach;
+  }
+
+  async getAllCoaches(): Promise<Coach[]> {
+    return await db.select().from(coaches)
+      .where(eq(coaches.isActive, true))
+      .orderBy(asc(coaches.name));
+  }
+
+  async getCoachById(id: number): Promise<Coach | undefined> {
+    const [coach] = await db.select().from(coaches).where(eq(coaches.id, id));
+    return coach || undefined;
+  }
+
+  async updateCoachAvailability(id: number, availability: any): Promise<Coach> {
+    const [updatedCoach] = await db.update(coaches)
+      .set({ availability })
+      .where(eq(coaches.id, id))
+      .returning();
+
+    if (!updatedCoach) {
+      throw new Error(`Coach with id ${id} not found`);
+    }
+
+    return updatedCoach;
+  }
+
   // Seed initial data if needed
   async seedInitialData() {
     // Check if resources already exist
@@ -180,6 +255,60 @@ export class DatabaseStorage implements IStorage {
       ];
 
       await db.insert(resources).values(sampleResources);
+    }
+    
+    // Check if coaches already exist
+    const existingCoaches = await db.select().from(coaches);
+    if (existingCoaches.length === 0) {
+      // Add sample coaches
+      const sampleCoaches: InsertCoach[] = [
+        {
+          name: "田中 智子",
+          email: "tanaka.satoko@mental-ai.jp",
+          specialty: "anxiety",
+          bio: "10年以上の臨床経験を持つ心理カウンセラー。不安障害と自己肯定感向上を専門としています。",
+          imageUrl: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80",
+          availability: JSON.stringify([
+            {
+              day: "月曜日",
+              slots: ["10:00", "11:00", "14:00", "15:00", "16:00"]
+            },
+            {
+              day: "水曜日",
+              slots: ["13:00", "14:00", "15:00", "16:00", "17:00"]
+            },
+            {
+              day: "金曜日",
+              slots: ["10:00", "11:00", "12:00"]
+            }
+          ]),
+          isActive: true
+        },
+        {
+          name: "佐藤 健太",
+          email: "sato.kenta@mental-ai.jp",
+          specialty: "career",
+          bio: "経営コンサルタントからキャリアコーチに転向。キャリア不安や職場でのストレス対処を得意としています。",
+          imageUrl: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&h=256&q=80",
+          availability: JSON.stringify([
+            {
+              day: "火曜日",
+              slots: ["18:00", "19:00", "20:00"]
+            },
+            {
+              day: "木曜日",
+              slots: ["18:00", "19:00", "20:00"]
+            },
+            {
+              day: "土曜日",
+              slots: ["10:00", "11:00", "12:00", "13:00", "14:00"]
+            }
+          ]),
+          isActive: true
+        }
+      ];
+
+      await db.insert(coaches).values(sampleCoaches);
     }
   }
 }
