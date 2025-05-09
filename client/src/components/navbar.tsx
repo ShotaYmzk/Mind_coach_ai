@@ -93,6 +93,13 @@ export default function Navbar() {
                         設定
                       </Link>
                     </DropdownMenuItem>
+                    {user.planType === "admin" && (
+                      <DropdownMenuItem asChild>
+                        <Link href="/admin" className="cursor-pointer">
+                          管理者ダッシュボード
+                        </Link>
+                      </DropdownMenuItem>
+                    )}
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={() => logout()}
@@ -186,6 +193,15 @@ export default function Navbar() {
                 >
                   設定
                 </Link>
+                {user.planType === "admin" && (
+                  <Link
+                    href="/admin"
+                    className="block px-4 py-2 text-base font-medium text-neutral-600 hover:bg-neutral-50 hover:text-neutral-800"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    管理者ダッシュボード
+                  </Link>
+                )}
                 <button
                   onClick={() => {
                     logout();
