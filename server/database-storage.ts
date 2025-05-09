@@ -210,6 +210,17 @@ export class DatabaseStorage implements IStorage {
     return updatedCoach;
   }
 
+  // Admin methods
+  async getAllUsers(): Promise<User[]> {
+    return await db.select().from(users)
+      .orderBy(asc(users.name));
+  }
+  
+  async getAllReservations(): Promise<Reservation[]> {
+    return await db.select().from(reservations)
+      .orderBy(asc(reservations.date));
+  }
+
   // Seed initial data if needed
   async seedInitialData() {
     // Check if resources already exist

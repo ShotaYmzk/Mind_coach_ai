@@ -527,27 +527,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // すべての予約を取得
       const reservations = await storage.getAllReservations();
       
-      // ユーザーごとに予約を取得
-      for (let i = 1; i <= 100; i++) {
-        const user = await storage.getUser(i);
-        if (user) {
-          const userReservations = await storage.getReservationsByUserId(user.id);
-          if (userReservations.length > 0) {
-            // ユーザー名を追加
-            const reservationsWithUserName = userReservations.map(res => ({
-              ...res,
-              userName: user.name
-            }));
-            reservations.push(...reservationsWithUserName);
-          }
-        }
-      }
+      // 各予約にユーザー名とコーチ名を追加
+      const enhancedReservations = await Promise.all(
+        reservations.map(async (reservation) => {
+          // ユーザー情報を取得
+          const user = await storage.getUser(reservation.userId);
+          const coach = reservation.coachId ? await storage.getCoachById(reservation.coachId) : null;
+          
+          return {
+            ...reservation,
+            userName: user ? user.name : "Unknown User",
+            coachName: coach ? coach.name : "Unknown Coach"
+          };
+        })
+      );
       
-      // 日付順に並べ替え
-      reservations.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-      
-      res.json(reservations);
+      res.json(enhancedReservations);
     } catch (error) {
+      console.error("Admin reservations error:", error);
       res.status(500).json({ message: "予約の取得中にエラーが発生しました" });
     }
   });
