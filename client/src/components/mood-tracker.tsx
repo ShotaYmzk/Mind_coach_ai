@@ -8,11 +8,27 @@ import { useAuth } from "@/lib/auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger
+} from "@/components/ui/dialog";
+import { format } from "date-fns";
 
 export default function MoodTracker() {
   const { user } = useAuth();
   const { toast } = useToast();
   const [currentMood, setCurrentMood] = useState<number>(7);
+  const [note, setNote] = useState<string>("");
+  const [triggers, setTriggers] = useState<string>("");
+  const [selectedMood, setSelectedMood] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const chartRef = useRef<HTMLCanvasElement>(null);
   const chartInstanceRef = useRef<any>(null);
 
@@ -27,6 +43,8 @@ export default function MoodTracker() {
     mutationFn: async () => {
       return apiRequest("POST", "/api/mood", {
         rating: currentMood,
+        note: note,
+        triggers: triggers
       });
     },
     onSuccess: () => {
@@ -34,6 +52,9 @@ export default function MoodTracker() {
         title: "気分を記録しました",
         description: "今日の気分が記録されました。",
       });
+      // リセット
+      setNote("");
+      setTriggers("");
       queryClient.invalidateQueries({ queryKey: ["/api/mood"] });
     },
     onError: () => {

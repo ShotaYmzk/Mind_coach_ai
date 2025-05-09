@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { BrainCog } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const registerSchema = z.object({
   username: z.string().min(3, "ユーザー名は3文字以上必要です"),
@@ -21,8 +22,17 @@ const registerSchema = z.object({
 type RegisterFormValues = z.infer<typeof registerSchema>;
 
 export default function Register() {
-  const { register } = useAuth();
+  const { register, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  
+  // ユーザーが既にログインしている場合はホームページにリダイレクト
+  useEffect(() => {
+    if (user) {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
   
   const form = useForm<RegisterFormValues>({
     resolver: zodResolver(registerSchema),
@@ -39,8 +49,19 @@ export default function Register() {
     setIsLoading(true);
     try {
       await register(data);
+      // 登録成功後、ホームページにリダイレクト
+      setLocation("/");
+      toast({
+        title: "登録成功",
+        description: "メンタルAIへようこそ！",
+      });
     } catch (error) {
       console.error("Registration error:", error);
+      toast({
+        title: "登録失敗",
+        description: "ユーザー名またはメールアドレスが既に使用されている可能性があります",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }

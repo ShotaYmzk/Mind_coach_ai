@@ -1,14 +1,15 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useAuth } from "@/lib/auth";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { BrainCog } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 const loginSchema = z.object({
   username: z.string().min(1, "ユーザー名を入力してください"),
@@ -18,8 +19,17 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 export default function Login() {
-  const { login } = useAuth();
+  const { login, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
+  const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  
+  // ユーザーが既にログインしている場合はホームページにリダイレクト
+  useEffect(() => {
+    if (user) {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
   
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
@@ -33,8 +43,19 @@ export default function Login() {
     setIsLoading(true);
     try {
       await login(data.username, data.password);
+      // ログイン成功後、ホームページにリダイレクト
+      setLocation("/");
+      toast({
+        title: "ログイン成功",
+        description: "メンタルAIへようこそ！",
+      });
     } catch (error) {
       console.error("Login error:", error);
+      toast({
+        title: "ログイン失敗",
+        description: "ユーザー名またはパスワードが正しくありません",
+        variant: "destructive",
+      });
     } finally {
       setIsLoading(false);
     }
