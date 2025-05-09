@@ -108,6 +108,42 @@ export const insertResourceSchema = createInsertSchema(resources).omit({
   createdAt: true,
 });
 
+// Coaching Reservations model
+export const reservations = pgTable("reservations", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  coachId: integer("coach_id"), // Optional, will be assigned later
+  date: timestamp("date").notNull(),
+  duration: integer("duration").default(60).notNull(), // minutes
+  status: text("status").default("pending").notNull(), // 'pending', 'confirmed', 'cancelled'
+  meetingUrl: text("meeting_url"), // Google Meet URL
+  notes: text("notes"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertReservationSchema = createInsertSchema(reservations).omit({
+  id: true,
+  createdAt: true,
+});
+
+// Coaches model
+export const coaches = pgTable("coaches", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email").notNull().unique(),
+  specialty: text("specialty").notNull(), // e.g. 'anxiety', 'depression', 'career'
+  bio: text("bio").notNull(),
+  imageUrl: text("image_url"),
+  availability: json("availability").notNull(), // JSON array of available time slots
+  isActive: boolean("is_active").default(true).notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export const insertCoachSchema = createInsertSchema(coaches).omit({
+  id: true,
+  createdAt: true,
+});
+
 // Type exports
 export type User = typeof users.$inferSelect;
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -129,3 +165,9 @@ export type InsertAssessment = z.infer<typeof insertAssessmentSchema>;
 
 export type Resource = typeof resources.$inferSelect;
 export type InsertResource = z.infer<typeof insertResourceSchema>;
+
+export type Reservation = typeof reservations.$inferSelect;
+export type InsertReservation = z.infer<typeof insertReservationSchema>;
+
+export type Coach = typeof coaches.$inferSelect;
+export type InsertCoach = z.infer<typeof insertCoachSchema>;

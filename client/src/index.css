@@ -89,6 +89,69 @@
   body {
     @apply font-sans antialiased bg-background text-foreground;
   }
+  
+  /* モバイルファーストのベーススタイル */
+  .container {
+    @apply px-4 mx-auto w-full;
+    max-width: 100%;
+  }
+  
+  h1 {
+    @apply text-2xl font-bold mb-2;
+  }
+  
+  h2 {
+    @apply text-xl font-semibold mb-2;
+  }
+  
+  /* テーブルがモバイルでスクロールできるようにする */
+  .table-container {
+    @apply w-full overflow-x-auto;
+  }
+  
+  /* フォームコントロールをモバイル用に最適化 */
+  input, select, textarea {
+    @apply text-base; /* タッチフレンドリーなサイズ */
+  }
+  
+  button {
+    @apply min-h-[44px]; /* タッチターゲットを大きく */
+  }
+}
+
+/* モバイルレスポンシブユーティリティ */
+@layer utilities {
+  .responsive-padding {
+    @apply px-4 py-4 sm:px-6 md:px-8 lg:px-10;
+  }
+  
+  .responsive-grid {
+    @apply grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4;
+  }
+  
+  .responsive-flex {
+    @apply flex flex-col sm:flex-row;
+  }
+  
+  .responsive-width {
+    @apply w-full sm:w-auto;
+  }
+  
+  .mobile-full {
+    @apply w-full sm:w-auto;
+  }
+  
+  .desktop-only {
+    @apply hidden md:block;
+  }
+  
+  .mobile-only {
+    @apply block md:hidden;
+  }
+  
+  .touch-target {
+    @apply min-h-[44px] min-w-[44px];
+  }
 }
 
 /* Custom classes for chat interface */
