@@ -18,6 +18,13 @@ type Question = {
   options?: string[];
   minLabel?: string;
   maxLabel?: string;
+  category?: string;
+};
+
+type AssessmentType = {
+  id: string;
+  name: string;
+  description: string;
 };
 
 export default function AssessmentForm() {
@@ -27,16 +34,32 @@ export default function AssessmentForm() {
   const [answers, setAnswers] = useState<Record<string, number | string>>({});
   const [showResults, setShowResults] = useState(false);
   const [result, setResult] = useState<any>(null);
+  const [selectedType, setSelectedType] = useState<string | null>(null);
+  const [showTypeSelection, setShowTypeSelection] = useState(true);
   
-  // Fetch assessment questions
-  const { data: questions, isLoading } = useQuery({
-    queryKey: ["/api/assessment/questions"],
+  // Fetch assessment types
+  const { data: assessmentTypes, isLoading: typesLoading } = useQuery({
+    queryKey: ["/api/assessment/question-types"],
+  });
+  
+  // Fetch assessment questions based on selected type
+  const { data: questions, isLoading: questionsLoading } = useQuery({
+    queryKey: ["/api/assessment/questions", selectedType],
+    queryFn: async () => {
+      const response = await fetch(`/api/assessment/questions${selectedType ? `?type=${selectedType}` : ''}`);
+      if (!response.ok) throw new Error('質問の取得に失敗しました');
+      return response.json();
+    },
+    enabled: !!selectedType,
   });
   
   // Submit assessment
   const { mutate: submitAssessment, isPending } = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/assessment/submit", { answers });
+      const res = await apiRequest("POST", "/api/assessment/submit", { 
+        answers,
+        type: selectedType 
+      });
       return res.json();
     },
     onSuccess: (data) => {

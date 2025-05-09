@@ -35,6 +35,7 @@ export type AssessmentQuestion = {
   options?: string[];
   minLabel?: string;
   maxLabel?: string;
+  category?: string;
 };
 
 export type AssessmentResult = {
@@ -43,86 +44,411 @@ export type AssessmentResult = {
   recommendations: string[];
 };
 
+// 一般的なメンタルヘルス評価質問
 export const mentalHealthQuestions: AssessmentQuestion[] = [
   {
     id: "q1",
     text: "最近、気分が落ち込んだり、憂鬱な気持ちになることがありますか？",
     type: "select",
-    options: ["まったくない", "数日", "半分以上の日", "ほぼ毎日"]
+    options: ["まったくない", "数日", "半分以上の日", "ほぼ毎日"],
+    category: "general"
   },
   {
     id: "q2",
     text: "物事に対する興味や楽しみが減少したと感じますか？",
     type: "scale",
     minLabel: "まったくない",
-    maxLabel: "ほぼ毎日"
+    maxLabel: "ほぼ毎日",
+    category: "general"
   },
   {
     id: "q3",
     text: "睡眠に問題がありますか？（寝つきが悪い、途中で目が覚める、または逆に眠りすぎる）",
     type: "select",
-    options: ["まったくない", "数日", "半分以上の日", "ほぼ毎日"]
+    options: ["まったくない", "数日", "半分以上の日", "ほぼ毎日"],
+    category: "general"
   },
   {
     id: "q4",
     text: "疲れていると感じたり、エネルギーが減少していると感じますか？",
     type: "scale",
     minLabel: "まったくない",
-    maxLabel: "ほぼ毎日"
+    maxLabel: "ほぼ毎日",
+    category: "general"
   },
   {
     id: "q5",
     text: "食欲不振や過食がありますか？",
     type: "select",
-    options: ["まったくない", "数日", "半分以上の日", "ほぼ毎日"]
+    options: ["まったくない", "数日", "半分以上の日", "ほぼ毎日"],
+    category: "general"
   },
   {
     id: "q6",
     text: "自分自身に対して悪く思ったり、自分が失敗者だと感じたり、自分や家族を落胆させたと感じることがありますか？",
     type: "scale",
     minLabel: "まったくない",
-    maxLabel: "ほぼ毎日"
+    maxLabel: "ほぼ毎日",
+    category: "general"
   },
   {
     id: "q7",
     text: "新聞を読んだりテレビを見たりなど、物事に集中することが難しいと感じますか？",
     type: "select",
-    options: ["まったくない", "数日", "半分以上の日", "ほぼ毎日"]
+    options: ["まったくない", "数日", "半分以上の日", "ほぼ毎日"],
+    category: "general"
   },
   {
     id: "q8",
     text: "他人が気づくほど動きや話し方が遅くなったり、反対に落ち着きがなく、普段よりもそわそわと動き回ることがありますか？",
     type: "scale",
     minLabel: "まったくない",
-    maxLabel: "ほぼ毎日"
+    maxLabel: "ほぼ毎日",
+    category: "general"
   },
   {
     id: "q9",
     text: "ストレスを感じる状況に直面したとき、どのように対処していますか？",
     type: "select",
-    options: ["積極的に解決策を探す", "誰かに相談する", "避けるようにしている", "対処法がわからない"]
+    options: ["積極的に解決策を探す", "誰かに相談する", "避けるようにしている", "対処法がわからない"],
+    category: "general"
   },
   {
     id: "q10",
     text: "自分自身をケアするための時間を定期的に取っていますか？",
     type: "scale",
     minLabel: "まったくとっていない",
-    maxLabel: "毎日取っている"
+    maxLabel: "毎日取っている",
+    category: "general"
+  }
+];
+
+// PHQ-9 うつ病スクリーニング
+export const depressionQuestions: AssessmentQuestion[] = [
+  {
+    id: "d1",
+    text: "物事に対してほとんど興味がない、または楽しめない",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "depression"
+  },
+  {
+    id: "d2",
+    text: "気分が落ち込む、憂鬱になる、または絶望的な気持ちになる",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "depression"
+  },
+  {
+    id: "d3",
+    text: "寝付きが悪い、途中で目が覚める、または逆に眠り過ぎる",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "depression"
+  },
+  {
+    id: "d4",
+    text: "疲れた感じがする、または気力がない",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "depression"
+  },
+  {
+    id: "d5",
+    text: "食欲がない、または食べ過ぎる",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "depression"
+  },
+  {
+    id: "d6",
+    text: "自分自身に対して否定的に考える — 自分が失敗者だと思ったり、自分や家族に申し訳ないと感じたりする",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "depression"
+  },
+  {
+    id: "d7",
+    text: "新聞を読んだりテレビを見たりするときに、集中することが難しい",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "depression"
+  },
+  {
+    id: "d8",
+    text: "動きや話し方が他の人が気づくほど遅くなったり、逆に落ち着きがなく、いつもよりソワソワと動き回ったりする",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "depression"
+  },
+  {
+    id: "d9",
+    text: "自分が死んだ方がましだ、または自分を何らかの方法で傷つけようと考えたことがある",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "depression"
+  }
+];
+
+// GAD-7 不安障害スクリーニング
+export const anxietyQuestions: AssessmentQuestion[] = [
+  {
+    id: "a1",
+    text: "神経質になったり、不安になったり、または緊張したりすることがある",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "anxiety"
+  },
+  {
+    id: "a2",
+    text: "心配することをやめられない、またはコントロールできない",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "anxiety"
+  },
+  {
+    id: "a3",
+    text: "様々なことについて過度に心配する",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "anxiety"
+  },
+  {
+    id: "a4",
+    text: "リラックスすることが難しい",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "anxiety"
+  },
+  {
+    id: "a5",
+    text: "じっとしていられないほど落ち着かない",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "anxiety"
+  },
+  {
+    id: "a6",
+    text: "簡単にイライラしたり、怒りっぽくなったりする",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "anxiety"
+  },
+  {
+    id: "a7",
+    text: "何か恐ろしいことが起こるのではないかと恐れを感じる",
+    type: "select",
+    options: ["全くない", "数日", "半分以上", "ほぼ毎日"],
+    category: "anxiety"
+  }
+];
+
+// ストレスチェック
+export const stressQuestions: AssessmentQuestion[] = [
+  {
+    id: "s1",
+    text: "予期せぬことが起きて動揺することがありましたか？",
+    type: "select",
+    options: ["全くない", "ほとんどない", "時々ある", "かなりある", "非常に頻繁"],
+    category: "stress"
+  },
+  {
+    id: "s2",
+    text: "人生の重要なことをコントロールできないと感じましたか？",
+    type: "select",
+    options: ["全くない", "ほとんどない", "時々ある", "かなりある", "非常に頻繁"],
+    category: "stress"
+  },
+  {
+    id: "s3",
+    text: "神経質になったりストレスを感じましたか？",
+    type: "select",
+    options: ["全くない", "ほとんどない", "時々ある", "かなりある", "非常に頻繁"],
+    category: "stress"
+  },
+  {
+    id: "s4",
+    text: "個人的な問題を効果的に処理する自信がありましたか？",
+    type: "select",
+    options: ["全くない", "ほとんどない", "時々ある", "かなりある", "非常に頻繁"],
+    category: "stress"
+  },
+  {
+    id: "s5",
+    text: "物事があなたの思い通りに進んでいると感じましたか？",
+    type: "select",
+    options: ["全くない", "ほとんどない", "時々ある", "かなりある", "非常に頻繁"],
+    category: "stress"
+  },
+  {
+    id: "s6",
+    text: "やらなければならないことすべてを処理できないと感じましたか？",
+    type: "select",
+    options: ["全くない", "ほとんどない", "時々ある", "かなりある", "非常に頻繁"],
+    category: "stress"
+  },
+  {
+    id: "s7",
+    text: "イライラを効果的にコントロールできましたか？",
+    type: "select",
+    options: ["全くない", "ほとんどない", "時々ある", "かなりある", "非常に頻繁"],
+    category: "stress"
+  },
+  {
+    id: "s8",
+    text: "すべてをうまく乗り切っていると感じましたか？",
+    type: "select",
+    options: ["全くない", "ほとんどない", "時々ある", "かなりある", "非常に頻繁"],
+    category: "stress"
+  },
+  {
+    id: "s9",
+    text: "コントロールできないことに怒りを感じましたか？",
+    type: "select",
+    options: ["全くない", "ほとんどない", "時々ある", "かなりある", "非常に頻繁"],
+    category: "stress"
+  },
+  {
+    id: "s10",
+    text: "困難が多すぎて乗り越えられないと感じましたか？",
+    type: "select",
+    options: ["全くない", "ほとんどない", "時々ある", "かなりある", "非常に頻繁"],
+    category: "stress"
+  }
+];
+
+// バーンアウト（燃え尽き症候群）評価
+export const burnoutQuestions: AssessmentQuestion[] = [
+  {
+    id: "b1",
+    text: "仕事や日常の活動で感情的に疲れ果てていると感じる",
+    type: "scale",
+    minLabel: "全くない",
+    maxLabel: "毎日",
+    category: "burnout"
+  },
+  {
+    id: "b2",
+    text: "一日の終わりに使い果たされた感じがする",
+    type: "scale",
+    minLabel: "全くない",
+    maxLabel: "毎日",
+    category: "burnout"
+  },
+  {
+    id: "b3",
+    text: "朝起きたとき、また一日仕事をすると思うと疲れを感じる",
+    type: "scale",
+    minLabel: "全くない",
+    maxLabel: "毎日",
+    category: "burnout"
+  },
+  {
+    id: "b4",
+    text: "他の人々と一緒に働くことは実際に負担である",
+    type: "scale",
+    minLabel: "全くない",
+    maxLabel: "毎日",
+    category: "burnout"
+  },
+  {
+    id: "b5",
+    text: "私の仕事/日常の活動で燃え尽きていると感じる",
+    type: "scale",
+    minLabel: "全くない",
+    maxLabel: "毎日",
+    category: "burnout"
+  },
+  {
+    id: "b6",
+    text: "仕事/日常の活動で欲求不満を感じる",
+    type: "scale",
+    minLabel: "全くない",
+    maxLabel: "毎日",
+    category: "burnout"
+  },
+  {
+    id: "b7",
+    text: "仕事/日常の活動に熱心に取り組んでいると感じる",
+    type: "scale",
+    minLabel: "全くない",
+    maxLabel: "毎日",
+    category: "burnout"
+  },
+  {
+    id: "b8",
+    text: "達成感を感じる",
+    type: "scale",
+    minLabel: "全くない",
+    maxLabel: "毎日",
+    category: "burnout"
+  },
+  {
+    id: "b9",
+    text: "以前は楽しんでいた活動への関心を失った",
+    type: "scale",
+    minLabel: "全くない",
+    maxLabel: "毎日",
+    category: "burnout"
+  },
+  {
+    id: "b10",
+    text: "人間関係や個人的なつながりから孤立していると感じる",
+    type: "scale",
+    minLabel: "全くない",
+    maxLabel: "毎日",
+    category: "burnout"
   }
 ];
 
 export async function analyzeMentalHealthAssessment(
-  answers: Record<string, number | string>
+  answers: Record<string, number | string>,
+  assessmentType: string = "general"
 ): Promise<AssessmentResult> {
   try {
     const model = getGeminiModel();
+    
+    // 評価タイプに基づいて質問を選択
+    let questions;
+    let title;
+    let scoring;
+    
+    switch (assessmentType) {
+      case "depression":
+        questions = depressionQuestions;
+        title = "うつ病スクリーニング (PHQ-9)";
+        scoring = "PHQ-9スコア（0-27点、高いほど症状が重い）";
+        break;
+      case "anxiety":
+        questions = anxietyQuestions;
+        title = "不安障害スクリーニング (GAD-7)";
+        scoring = "GAD-7スコア（0-21点、高いほど症状が重い）";
+        break;
+      case "stress":
+        questions = stressQuestions;
+        title = "ストレスチェック";
+        scoring = "ストレススコア（0-40点、高いほどストレスが高い）";
+        break;
+      case "burnout":
+        questions = burnoutQuestions;
+        title = "バーンアウト評価";
+        scoring = "バーンアウトスコア（0-100点、高いほど燃え尽き状態が深刻）";
+        break;
+      default:
+        questions = mentalHealthQuestions;
+        title = "一般的なメンタルヘルス評価";
+        scoring = "総合スコア（0-100点、高いほど良好な状態）";
+    }
+    
     const promptData = {
-      questions: mentalHealthQuestions,
-      answers: answers
+      title,
+      assessmentType,
+      questions,
+      answers
     };
 
-    const systemPrompt = "あなたはメンタルヘルスの専門家です。ユーザーの回答に基づいて、メンタルヘルス評価を行い、スコア（0-100）、総合的な分析、および改善のための3つの推奨事項を提供してください。";
-    const userPrompt = `以下はユーザーのメンタルヘルス質問票への回答です。この回答を分析し、総合スコア（0-100、高いほど良好な状態）、全体的な健康状態の要約、および改善のための具体的な推奨事項を3つ提供してください。必ずJSON形式で回答してください。必要なフィールドは score (数値), summary (文字列), recommendations (文字列の配列) です。回答データ: ${JSON.stringify(promptData)}`;
+    const systemPrompt = `あなたはメンタルヘルスの専門家です。ユーザーの回答に基づいて、${title}を行い、${scoring}、総合的な分析、および改善のための3つの推奨事項を提供してください。`;
+    const userPrompt = `以下はユーザーの${title}への回答です。この回答を分析し、${scoring}、全体的な状態の要約、および改善のための具体的な推奨事項を3つ提供してください。必ずJSON形式で回答してください。必要なフィールドは score (数値), summary (文字列), recommendations (文字列の配列) です。回答データ: ${JSON.stringify(promptData)}`;
     
     const prompt = `${systemPrompt}\n\n${userPrompt}`;
 

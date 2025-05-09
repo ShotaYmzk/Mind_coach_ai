@@ -11,7 +11,16 @@ import {
   insertAssessmentSchema,
   insertReservationSchema 
 } from "@shared/schema";
-import { analyzeMentalHealthAssessment, getChatResponse, analyzeMoodEntry, mentalHealthQuestions } from "./ai";
+import { 
+  analyzeMentalHealthAssessment, 
+  getChatResponse, 
+  analyzeMoodEntry, 
+  mentalHealthQuestions,
+  depressionQuestions,
+  anxietyQuestions,
+  stressQuestions,
+  burnoutQuestions
+} from "./ai";
 import { generateMeetingUrl } from "./meeting";
 import session from "express-session";
 import passport from "passport";
@@ -334,25 +343,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   // Assessment routes
   app.get("/api/assessment/questions", (req, res) => {
-    res.json(mentalHealthQuestions);
+    const type = req.query.type as string || "general";
+    let questions;
+    
+    switch (type) {
+      case "depression":
+        questions = depressionQuestions;
+        break;
+      case "anxiety":
+        questions = anxietyQuestions;
+        break;
+      case "stress":
+        questions = stressQuestions;
+        break;
+      case "burnout":
+        questions = burnoutQuestions;
+        break;
+      default:
+        questions = mentalHealthQuestions;
+    }
+    
+    res.json(questions);
+  });
+  
+  app.get("/api/assessment/question-types", (req, res) => {
+    res.json([
+      { id: "general", name: "一般的なメンタルヘルス評価", description: "全体的な精神状態を把握するための基本的な評価" },
+      { id: "depression", name: "うつ病スクリーニング (PHQ-9)", description: "うつ症状の有無と重症度を評価する国際的に使用されているスクリーニングツール" },
+      { id: "anxiety", name: "不安障害スクリーニング (GAD-7)", description: "不安症状の重症度を測定する7項目の質問票" },
+      { id: "stress", name: "ストレスチェック", description: "日常生活におけるストレスレベルを評価" },
+      { id: "burnout", name: "バーンアウト評価", description: "仕事や日常生活における燃え尽き症候群の兆候を評価" }
+    ]);
   });
   
   app.post("/api/assessment/submit", isAuthenticated, async (req, res) => {
     try {
       const user = req.user as any;
       const answers = req.body.answers;
+      const type = req.body.type || "general";
       
       if (!answers || typeof answers !== "object") {
         return res.status(400).json({ message: "有効な回答が必要です" });
       }
       
-      // Analyze with AI
-      const result = await analyzeMentalHealthAssessment(answers);
+      // Analyze with AI based on assessment type
+      const result = await analyzeMentalHealthAssessment(answers, type);
       
       // Save assessment
       const assessmentData = insertAssessmentSchema.parse({
         userId: user.id,
-        type: req.body.type || "mental_health",
+        type: type,
         results: answers,
         score: result.score,
         summary: result.summary,
