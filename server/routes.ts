@@ -503,31 +503,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Admin routes
   app.get("/api/admin/users", isAdmin, async (req, res) => {
     try {
-      // すべてのユーザーを取得するには一旦すべてのIDを取得する必要がある
-      // 実際のアプリケーションでは、データベースからすべてのユーザーを取得する専用のメソッドを用意する
+      // すべてのユーザーを取得
       const users = [];
       
-      // 1から始めて、ユーザーが見つからなくなるまで取得を試みる
-      for (let i = 1; i <= 100; i++) {
-        const user = await storage.getUser(i);
-        if (user) {
-          // パスワードは除外
-          const { password, ...userWithoutPassword } = user;
-          users.push(userWithoutPassword);
-        }
+      // SQL クエリを実行して全ユーザーを取得
+      const allUsers = await storage.getAllUsers();
+      
+      // パスワードを除外
+      for (const user of allUsers) {
+        const { password, ...userWithoutPassword } = user;
+        users.push(userWithoutPassword);
       }
       
       res.json(users);
     } catch (error) {
+      console.error("Admin users error:", error);
       res.status(500).json({ message: "ユーザーの取得中にエラーが発生しました" });
     }
   });
   
   app.get("/api/admin/reservations", isAdmin, async (req, res) => {
     try {
-      // すべての予約を取得するには一旦すべてのユーザーIDを取得する必要がある
-      // 実際のアプリケーションでは、データベースからすべての予約を取得する専用のメソッドを用意する
-      const reservations = [];
+      // すべての予約を取得
+      const reservations = await storage.getAllReservations();
       
       // ユーザーごとに予約を取得
       for (let i = 1; i <= 100; i++) {

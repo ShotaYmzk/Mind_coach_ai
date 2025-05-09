@@ -64,6 +64,10 @@ export interface IStorage {
   getAllCoaches(): Promise<Coach[]>;
   getCoachById(id: number): Promise<Coach | undefined>;
   updateCoachAvailability(id: number, availability: any): Promise<Coach>;
+  
+  // Admin methods
+  getAllUsers(): Promise<User[]>;
+  getAllReservations(): Promise<Reservation[]>;
 }
 
 export class MemStorage implements IStorage {
@@ -401,6 +405,17 @@ export class MemStorage implements IStorage {
     const updatedCoach: Coach = { ...coach, availability };
     this.coaches.set(id, updatedCoach);
     return updatedCoach;
+  }
+  
+  // Admin methods
+  async getAllUsers(): Promise<User[]> {
+    return Array.from(this.users.values())
+      .sort((a, b) => a.name.localeCompare(b.name));
+  }
+  
+  async getAllReservations(): Promise<Reservation[]> {
+    return Array.from(this.reservations.values())
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
   }
 }
 
