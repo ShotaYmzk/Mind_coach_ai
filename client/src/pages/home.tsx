@@ -86,7 +86,7 @@ export default function Home() {
           iconTextColor="text-primary-500"
           footer={{
             text: "詳細を見る",
-            link: "/stats",
+            link: "/profile",
           }}
         />
         
@@ -110,7 +110,7 @@ export default function Home() {
           iconTextColor="text-accent-500"
           footer={{
             text: "スケジュールを変更",
-            link: "/schedule",
+            link: "/reservation",
           }}
         />
       </div>

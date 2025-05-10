@@ -31,6 +31,8 @@ function Router() {
           <Route path="/admin" component={Admin} />
           <Route path="/profile" component={Profile} />
           <Route path="/reservation" component={Reservation} />
+          <Route path="/schedule" component={Reservation} />
+          <Route path="/settings" component={Profile} />
           <Route component={NotFound} />
         </Switch>
       </div>

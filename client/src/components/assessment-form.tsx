@@ -56,11 +56,30 @@ export default function AssessmentForm() {
   // Submit assessment
   const { mutate: submitAssessment, isPending } = useMutation({
     mutationFn: async () => {
-      const res = await apiRequest("POST", "/api/assessment/submit", { 
-        answers,
-        type: selectedType 
-      });
-      return res.json();
+      try {
+        // 認証情報付きでリクエスト送信
+        const res = await fetch("/api/assessment/submit", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ 
+            answers,
+            type: selectedType 
+          }),
+          credentials: "include" // Cookie付きのリクエストを送信
+        });
+        
+        if (!res.ok) {
+          const errorData = await res.json();
+          throw new Error(errorData.message || "送信中にエラーが発生しました");
+        }
+        
+        return res.json();
+      } catch (error) {
+        console.error("Assessment submission error:", error);
+        throw error;
+      }
     },
     onSuccess: (data) => {
       setResult(data);
@@ -70,10 +89,11 @@ export default function AssessmentForm() {
         description: "あなたの回答が正常に送信されました。",
       });
     },
-    onError: () => {
+    onError: (error: any) => {
+      console.error("Submit error:", error);
       toast({
         title: "エラー",
-        description: "評価の送信中にエラーが発生しました。",
+        description: error.message || "評価の送信中にエラーが発生しました。ログインしているか確認してください。",
         variant: "destructive",
       });
     },
