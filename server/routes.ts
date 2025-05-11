@@ -34,15 +34,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "mindcoach-ai-secret",
-      resave: false,
-      saveUninitialized: false,
+      resave: true,
+      saveUninitialized: true,
       store: new MemoryStoreSession({
         checkPeriod: 86400000 // 24 hours
       }),
       cookie: {
-        maxAge: 24 * 60 * 60 * 1000, // 24 hours
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: false, // Replit環境では開発中でもHTTPSを使用することがあるため
         sameSite: "lax"
       }
     })
@@ -73,24 +73,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
   );
   
   passport.serializeUser((user: any, done) => {
+    console.log("Serializing user:", user.id);
     done(null, user.id);
   });
   
   passport.deserializeUser(async (id: number, done) => {
     try {
+      console.log("Deserializing user ID:", id);
       const user = await storage.getUser(id);
+      if (!user) {
+        console.log("User not found in database:", id);
+        return done(null, false);
+      }
+      console.log("User deserialized successfully:", user.id);
       done(null, user);
     } catch (error) {
+      console.error("Error deserializing user:", error);
       done(error);
     }
   });
   
-  // Auth middleware
+  // Auth middleware with detailed debugging
   const isAuthenticated = (req: Request, res: Response, next: Function) => {
     if (req.isAuthenticated()) {
       return next();
     }
-    res.status(401).json({ message: "認証が必要です" });
+    console.log("認証エラー情報:", {
+      sessionID: req.sessionID,
+      hasSession: !!req.session,
+      cookie: req.session?.cookie,
+      headers: req.headers,
+      reqUser: req.user
+    });
+    res.status(401).json({ message: "認証が必要です。セッションが失効している可能性があります。" });
   };
   
   // Admin middleware
