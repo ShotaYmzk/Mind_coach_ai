@@ -1012,6 +1012,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // チャットAPI関連エンドポイント
+  // 新しいチャットセッションを作成
+  app.post("/api/chat/sessions", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id || req.session?.userId;
+      const title = req.body.title || "新しいセッション";
+      
+      const newSession = await createChatSession(userId, title);
+      res.status(201).json(newSession);
+    } catch (error) {
+      console.error("チャットセッション作成エラー:", error);
+      res.status(500).json({ message: "チャットセッションの作成に失敗しました" });
+    }
+  });
+  
+  // ユーザーのチャットセッション一覧取得
+  app.get("/api/chat/sessions", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id || req.session?.userId;
+      const sessions = await getUserChatSessions(userId);
+      res.json(sessions);
+    } catch (error) {
+      console.error("チャットセッション一覧取得エラー:", error);
+      res.status(500).json({ message: "チャットセッションの取得に失敗しました" });
+    }
+  });
+  
+  // チャット履歴取得
+  app.get("/api/chat/history", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id || req.session?.userId;
+      const sessionId = parseInt(req.query.sessionId as string);
+      
+      if (!sessionId || isNaN(sessionId)) {
+        return res.status(400).json({ message: "有効なセッションIDが必要です" });
+      }
+      
+      const messages = await getChatHistory(sessionId, userId);
+      res.json(messages);
+    } catch (error) {
+      console.error("チャット履歴取得エラー:", error);
+      res.status(500).json({ message: "チャット履歴の取得に失敗しました" });
+    }
+  });
+  
+  // メッセージ送信
+  app.post("/api/chat/send", isAuthenticated, async (req, res) => {
+    try {
+      const userId = req.user?.id || req.session?.userId;
+      const { sessionId, message } = req.body;
+      
+      if (!sessionId || !message) {
+        return res.status(400).json({ message: "セッションIDとメッセージが必要です" });
+      }
+      
+      const response = await sendChatMessage(sessionId, userId, message);
+      res.json({ response });
+    } catch (error) {
+      console.error("チャットメッセージ送信エラー:", error);
+      res.status(500).json({ message: "メッセージの送信に失敗しました" });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

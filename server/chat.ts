@@ -130,19 +130,13 @@ export async function sendChatMessage(sessionId: number, userId: number, message
     const model = genAI.getGenerativeModel({
       model: "gemini-pro",
     });
-  
-    // AIに送信
-    const chat = model.startChat({
-      history: messages.slice(1), // systemプロンプトを除く
-      generationConfig: {
-        temperature: 0.7,
-        topP: 0.95,
-        topK: 40,
-      },
-    });
+    
+    // Gemini APIでのチャットは簡略化して実装
+    // 履歴を使わず直接プロンプトとしてメッセージを送信
     
     // レスポンス取得
-    const result = await chat.sendMessage(message);
+    const promptText = messages.map(m => `${m.role}: ${m.content}`).join('\n');
+    const result = await model.generateContent(promptText);
     const responseText = result.response.text();
     
     // AIの応答をDBに保存

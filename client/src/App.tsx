@@ -37,7 +37,6 @@ function Router() {
           <Route path="/schedule" component={Schedule} />
           <Route path="/settings" component={Profile} />
           <Route path="/status" component={Status} />
-          <Route path="/chatbot" component={Chatbot} />
           <Route component={NotFound} />
         </Switch>
       </div>
