@@ -47,24 +47,21 @@ export class DatabaseStorage implements IStorage {
 
   async getMoodEntriesByUserId(userId: number, limit?: number): Promise<MoodEntry[]> {
     try {
-      // SQL クエリを使用して直接カラム名を指定（notes を note として取得）
-      const query = `
-        SELECT 
-          id, 
-          user_id as "userId", 
-          rating, 
-          notes as "note",  -- 'notes' カラムを 'note' として取得
-          created_at as "createdAt"
-        FROM mood_entries
-        WHERE user_id = $1
-        ORDER BY created_at DESC
-        ${limit ? `LIMIT ${limit}` : ''}
-      `;
+      // Drizzle ORMを使用してノーマルなクエリを作成
+      let query = db.select().from(moodEntries)
+        .where(eq(moodEntries.userId, userId))
+        .orderBy(desc(moodEntries.createdAt));
+
+      // リミットがある場合はlimit句を追加
+      const entries = limit ? await query.limit(limit) : await query;
       
-      const result = await db.execute(query, [userId]);
-      return result.rows.map(row => ({
-        ...row,
-        triggers: null,  // 'triggers' カラムがない場合のデフォルト値
+      // データを変換（クライアント側の期待する形式に合わせる）
+      return entries.map(entry => ({
+        id: entry.id,
+        userId: entry.userId,
+        rating: entry.rating,
+        notes: entry.notes,    // DBのnotes列をそのまま使用
+        createdAt: entry.createdAt
       }));
     } catch (error) {
       console.error("気分エントリ取得エラー:", error);
@@ -135,28 +132,16 @@ export class DatabaseStorage implements IStorage {
 
   async getAssessmentsByUserId(userId: number): Promise<Assessment[]> {
     try {
-      // SQL クエリを使用して直接カラム名を指定
-      const query = `
-        SELECT 
-          id, 
-          user_id as "userId",
-          type,
-          results,
-          score,
-          created_at as "createdAt"
-        FROM assessments
-        WHERE user_id = $1
-        ORDER BY created_at DESC
-      `;
+      // Drizzle ORMを使用してノーマルなクエリを作成
+      const query = db.select().from(assessments)
+        .where(eq(assessments.userId, userId))
+        .orderBy(desc(assessments.createdAt));
+
+      // クエリを実行
+      const items = await query;
       
-      const result = await db.execute(query, [userId]);
-      
-      // 不足しているフィールドに対してデフォルト値を設定
-      return result.rows.map(row => ({
-        ...row,
-        summary: null,           // summary カラムがない場合のデフォルト値
-        recommendations: null    // recommendations カラムがない場合のデフォルト値
-      }));
+      // データを返す
+      return items;
     } catch (error) {
       console.error("アセスメント履歴取得エラー:", error);
       throw error;

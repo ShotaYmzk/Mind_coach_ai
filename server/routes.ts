@@ -411,13 +411,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const moodEntries = await storage.getMoodEntriesByUserId(userId, limit);
       
-      // データ整形して返す
+      // データ整形して返す - notesをクライアントが期待するnoteとして返す
       const sanitizedMoodEntries = moodEntries.map(entry => ({
         id: entry.id,
         createdAt: entry.createdAt,
         rating: entry.rating,
-        note: entry.note,
-        triggers: entry.triggers,
+        note: entry.notes,
         userId: entry.userId
       }));
       

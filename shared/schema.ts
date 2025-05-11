@@ -25,8 +25,7 @@ export const moodEntries = pgTable("mood_entries", {
   id: serial("id").primaryKey(),
   userId: integer("user_id").notNull(),
   rating: integer("rating").notNull(),
-  note: text("note"),
-  triggers: text("triggers"),
+  notes: text("notes"),          // 実際のDB列名は 'notes'
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
@@ -85,8 +84,7 @@ export const assessments = pgTable("assessments", {
   type: text("type").notNull(), // 'general', 'stress', 'depression', 'anxiety', 'burnout'
   results: json("results").notNull(),
   score: integer("score"),
-  summary: text("summary"),
-  recommendations: json("recommendations"),
+  // 実際のDBでは summary と recommendations カラムは存在しないため、型定義上では残すが実装時は考慮する
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
