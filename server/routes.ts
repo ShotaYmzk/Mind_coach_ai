@@ -27,6 +27,14 @@ import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
 import MemoryStore from "memorystore";
 
+// セッションのタイプ拡張
+declare module 'express-session' {
+  interface Session {
+    userId?: number;
+    authenticated?: boolean;
+  }
+}
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // Setup session store
   const MemoryStoreSession = MemoryStore(session);
@@ -96,18 +104,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Auth middleware with detailed debugging
+  // Auth middleware with detailed debugging and session validation
   const isAuthenticated = (req: Request, res: Response, next: Function) => {
-    if (req.isAuthenticated()) {
+    // 1. Passportのネイティブチェック
+    const passportAuthenticated = req.isAuthenticated();
+    
+    // 2. 手動でのセッション検証（バックアップ）
+    const sessionAuthenticated = req.session && 
+                                req.session.authenticated === true && 
+                                req.session.userId !== undefined;
+    
+    if (passportAuthenticated || sessionAuthenticated) {
+      console.log("認証成功:", {
+        method: passportAuthenticated ? "passport" : "session",
+        sessionID: req.sessionID,
+        userId: req.session?.userId || (req.user as any)?.id
+      });
       return next();
     }
+    
     console.log("認証エラー情報:", {
       sessionID: req.sessionID,
       hasSession: !!req.session,
       cookie: req.session?.cookie,
       headers: req.headers,
-      reqUser: req.user
+      reqUser: req.user,
+      authenticated: req.session?.authenticated,
+      userId: req.session?.userId
     });
+    
     res.status(401).json({ message: "認証が必要です。セッションが失効している可能性があります。" });
   };
   
@@ -174,14 +199,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(401).json({ message: "ユーザー名またはパスワードが間違っています" });
       }
       
-      req.login(user, (loginErr) => {
+      // パスワードを削除（セキュリティ対策）
+      const { password, ...sanitizedUser } = user;
+      
+      req.login(sanitizedUser, (loginErr) => {
         if (loginErr) {
           console.error("セッション作成エラー:", loginErr);
           return next(loginErr);
         }
         
+        // セッション強化
+        req.session.userId = sanitizedUser.id;
+        req.session.authenticated = true;
+        
         console.log("ログイン成功:", {
-          userId: user.id,
+          userId: sanitizedUser.id,
           sessionID: req.sessionID,
           cookie: req.session?.cookie
         });
@@ -193,12 +225,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
             return next(saveErr);
           }
           
+          // 必要最小限の情報のみを返す
           res.json({
-            id: user.id,
-            username: user.username,
-            name: user.name,
-            email: user.email,
-            planType: user.planType
+            id: sanitizedUser.id,
+            username: sanitizedUser.username,
+            name: sanitizedUser.name,
+            email: sanitizedUser.email,
+            planType: sanitizedUser.planType
           });
         });
       });
