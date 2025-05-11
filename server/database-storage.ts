@@ -179,6 +179,32 @@ export class DatabaseStorage implements IStorage {
 
     return updatedReservation;
   }
+  
+  async updateReservationMeetingUrl(id: number, meetingUrl: string): Promise<Reservation> {
+    const [updatedReservation] = await db.update(reservations)
+      .set({ meetingUrl })
+      .where(eq(reservations.id, id))
+      .returning();
+
+    if (!updatedReservation) {
+      throw new Error(`Reservation with id ${id} not found`);
+    }
+
+    return updatedReservation;
+  }
+  
+  async updateReservationNotes(id: number, notes: string): Promise<Reservation> {
+    const [updatedReservation] = await db.update(reservations)
+      .set({ notes })
+      .where(eq(reservations.id, id))
+      .returning();
+
+    if (!updatedReservation) {
+      throw new Error(`Reservation with id ${id} not found`);
+    }
+
+    return updatedReservation;
+  }
 
   // Coach methods
   async createCoach(insertCoach: InsertCoach): Promise<Coach> {
