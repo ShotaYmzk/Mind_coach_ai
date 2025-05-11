@@ -14,6 +14,7 @@ import {
 import { 
   analyzeMentalHealthAssessment, 
   getChatResponse, 
+  getSimpleChatbotResponse,
   analyzeMoodEntry, 
   mentalHealthQuestions,
   depressionQuestions,
@@ -970,6 +971,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(updatedCoach);
     } catch (error) {
       res.status(500).json({ message: "コーチ可用性の更新中にエラーが発生しました" });
+    }
+  });
+
+  // シンプルなチャットボットAPI
+  app.post("/api/chatbot", async (req, res) => {
+    try {
+      const { message, history } = req.body;
+      
+      if (!message || typeof message !== 'string') {
+        return res.status(400).json({ message: "メッセージは必須です" });
+      }
+      
+      console.log("チャットボットリクエスト受信:", { 
+        messageLength: message.length,
+        historyCount: history?.length || 0
+      });
+      
+      // Google AIを使用して応答を生成
+      const response = await getSimpleChatbotResponse(message, history || []);
+      
+      res.json({ response });
+    } catch (error) {
+      console.error("チャットボットエラー:", error);
+      res.status(500).json({ message: "チャットボットの処理中にエラーが発生しました" });
     }
   });
 
