@@ -14,6 +14,7 @@ import Profile from "@/pages/profile";
 import Reservation from "@/pages/reservation";
 import Schedule from "@/pages/schedule";
 import Status from "@/pages/status";
+import Chatbot from "@/pages/chatbot";
 import { AuthProvider } from "@/lib/auth";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
@@ -36,6 +37,7 @@ function Router() {
           <Route path="/schedule" component={Schedule} />
           <Route path="/settings" component={Profile} />
           <Route path="/status" component={Status} />
+          <Route path="/chatbot" component={Chatbot} />
           <Route component={NotFound} />
         </Switch>
       </div>
