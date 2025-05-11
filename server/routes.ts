@@ -23,6 +23,12 @@ import {
   burnoutQuestions
 } from "./ai";
 import { generateMeetingUrl } from "./meeting";
+import { 
+  sendChatMessage, 
+  getChatHistory, 
+  createChatSession, 
+  getUserChatSessions 
+} from "./chat";
 import session from "express-session";
 import passport from "passport";
 import { Strategy as LocalStrategy } from "passport-local";
