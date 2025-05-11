@@ -4,15 +4,36 @@ import { useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AssessmentForm from "@/components/assessment-form";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BrainCog, BarChart2, ArrowRight } from "lucide-react";
+import { BrainCog, BarChart2, ArrowRight, CheckCircle, Brain, Activity, ThumbsUp } from "lucide-react";
 import { format } from "date-fns";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Progress } from "@/components/ui/progress";
 
 export default function Assessment() {
   const { user, isLoading: authLoading } = useAuth();
   const [, setLocation] = useLocation();
+  const [selectedAssessment, setSelectedAssessment] = useState<any>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   
   useEffect(() => {
     if (!authLoading && !user) {
@@ -25,6 +46,24 @@ export default function Assessment() {
     queryKey: ["/api/assessment/history"],
     enabled: !!user,
   });
+  
+  // 診断タイプ名を取得する関数
+  const getAssessmentTypeName = (type: string) => {
+    switch(type) {
+      case "mental_health": return "総合メンタルヘルス診断";
+      case "depression": return "うつ症状評価（PHQ-9）";
+      case "anxiety": return "不安症状評価（GAD-7）";
+      case "stress": return "ストレスチェック";
+      case "burnout": return "バーンアウト評価";
+      default: return type;
+    }
+  };
+  
+  // 診断結果の詳細を表示する関数
+  const showAssessmentDetails = (assessment: any) => {
+    setSelectedAssessment(assessment);
+    setIsDialogOpen(true);
+  };
   
   if (authLoading || (!user && !authLoading)) {
     return (
@@ -101,6 +140,7 @@ export default function Assessment() {
                             variant="ghost"
                             size="sm"
                             className="mt-2 text-primary-600 hover:text-primary-700 p-0 h-auto"
+                            onClick={() => showAssessmentDetails(assessment)}
                           >
                             詳細を見る <ArrowRight className="ml-1 h-3 w-3" />
                           </Button>
@@ -120,6 +160,104 @@ export default function Assessment() {
               </Card>
             </TabsContent>
           </Tabs>
+          
+          {/* 診断結果詳細ダイアログ */}
+          <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+              {selectedAssessment && (
+                <>
+                  <DialogHeader>
+                    <DialogTitle className="text-xl flex items-center">
+                      <BrainCog className="h-5 w-5 mr-2 text-primary-600" />
+                      {getAssessmentTypeName(selectedAssessment.type)} 結果詳細
+                    </DialogTitle>
+                    <DialogDescription>
+                      実施日: {format(new Date(selectedAssessment.createdAt), "yyyy年MM月dd日 HH:mm")}
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="space-y-6 mt-4">
+                    {/* スコア表示 */}
+                    <div className="bg-neutral-50 p-4 rounded-lg">
+                      <div className="flex justify-between items-center mb-2">
+                        <h3 className="font-medium text-neutral-700">総合スコア</h3>
+                        <div className="text-2xl font-bold text-primary-700">{selectedAssessment.score}/100</div>
+                      </div>
+                      <Progress value={selectedAssessment.score} className="h-3" />
+                      
+                      <div className="text-sm text-neutral-500 mt-2 flex justify-between">
+                        <span>要対応</span>
+                        <span>注意</span>
+                        <span>良好</span>
+                      </div>
+                    </div>
+                    
+                    {/* 結果サマリー */}
+                    <div>
+                      <h3 className="font-medium text-neutral-700 mb-2 flex items-center">
+                        <Brain className="h-4 w-4 mr-2 text-primary-600" />
+                        診断結果サマリー
+                      </h3>
+                      <div className="bg-primary-50 border border-primary-100 rounded-lg p-4 text-neutral-700">
+                        {selectedAssessment.summary}
+                      </div>
+                    </div>
+                    
+                    {/* 推奨アクション */}
+                    <div>
+                      <h3 className="font-medium text-neutral-700 mb-2 flex items-center">
+                        <Activity className="h-4 w-4 mr-2 text-primary-600" />
+                        推奨アクション
+                      </h3>
+                      <ul className="space-y-3">
+                        {selectedAssessment.recommendations?.map((rec: string, idx: number) => (
+                          <li key={idx} className="flex">
+                            <CheckCircle className="h-5 w-5 mr-2 text-green-500 flex-shrink-0 mt-0.5" />
+                            <span className="text-neutral-700">{rec}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                    
+                    {/* 回答詳細 */}
+                    {selectedAssessment.results && (
+                      <div>
+                        <h3 className="font-medium text-neutral-700 mb-2 flex items-center">
+                          <ThumbsUp className="h-4 w-4 mr-2 text-primary-600" />
+                          回答詳細
+                        </h3>
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader>
+                              <TableRow>
+                                <TableHead>質問</TableHead>
+                                <TableHead className="w-32 text-right">回答</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {Object.entries(selectedAssessment.results).map(([key, value]: [string, any]) => (
+                                <TableRow key={key}>
+                                  <TableCell>{key}</TableCell>
+                                  <TableCell className="text-right">{value}</TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <DialogFooter className="mt-6">
+                    <Button onClick={() => setIsDialogOpen(false)} variant="outline">閉じる</Button>
+                    <Button asChild>
+                      <a href="/coaching">AIコーチングを始める</a>
+                    </Button>
+                  </DialogFooter>
+                </>
+              )}
+            </DialogContent>
+          </Dialog>
         </div>
         
         <div className="lg:col-span-1 space-y-6">
