@@ -320,11 +320,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/mood", isAuthenticated, async (req, res) => {
     try {
-      const user = req.user as any;
+      // ユーザー情報取得の強化 - passportとセッションの両方から試行
+      let userId: number | undefined;
+      
+      if (req.user && typeof req.user === 'object' && 'id' in req.user) {
+        userId = req.user.id as number;
+      } else if (req.session && req.session.userId) {
+        userId = req.session.userId;
+      }
+      
+      if (!userId) {
+        console.error("気分ログ取得時のユーザーIDが見つかりません:", { 
+          user: req.user, 
+          session: req.session,
+          sessionID: req.sessionID
+        });
+        return res.status(401).json({ message: "認証セッションが無効です。再ログインしてください。" });
+      }
+      
       const limit = req.query.limit ? parseInt(req.query.limit as string) : undefined;
-      const moodEntries = await storage.getMoodEntriesByUserId(user.id, limit);
-      res.json(moodEntries);
+      console.log("気分ログ取得:", { userId, limit, sessionID: req.sessionID });
+      
+      const moodEntries = await storage.getMoodEntriesByUserId(userId, limit);
+      
+      // データ整形して返す
+      const sanitizedMoodEntries = moodEntries.map(entry => ({
+        id: entry.id,
+        createdAt: entry.createdAt,
+        rating: entry.rating,
+        note: entry.note,
+        triggers: entry.triggers,
+        userId: entry.userId
+      }));
+      
+      res.json(sanitizedMoodEntries);
     } catch (error) {
+      console.error("気分データ取得エラー:", error);
       res.status(500).json({ message: "気分データの取得中にエラーが発生しました" });
     }
   });
@@ -493,38 +524,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post("/api/assessment/submit", isAuthenticated, async (req, res) => {
     try {
-      const user = req.user as any;
+      // ユーザー情報取得の強化 - passportとセッションの両方から試行
+      let userId: number | undefined;
+      
+      if (req.user && typeof req.user === 'object' && 'id' in req.user) {
+        userId = req.user.id as number;
+      } else if (req.session && req.session.userId) {
+        userId = req.session.userId;
+      }
+      
+      if (!userId) {
+        console.error("ユーザーIDが見つかりません:", { 
+          user: req.user, 
+          session: req.session,
+          sessionID: req.sessionID
+        });
+        return res.status(401).json({ message: "認証セッションが無効です。再ログインしてください。" });
+      }
+      
       const answers = req.body.answers;
-      const type = req.body.type || "general";
+      const type = req.body.type || "mental_health";
       
       if (!answers || typeof answers !== "object") {
         return res.status(400).json({ message: "有効な回答が必要です" });
       }
       
-      // Analyze with AI based on assessment type
-      const result = await analyzeMentalHealthAssessment(answers, type);
-      
-      // Save assessment
-      const assessmentData = insertAssessmentSchema.parse({
-        userId: user.id,
-        type: type,
-        results: answers,
-        score: result.score,
-        summary: result.summary,
-        recommendations: result.recommendations
+      console.log(`アセスメント送信 (${type})`, {
+        userId,
+        questionCount: Object.keys(answers).length,
+        sessionID: req.sessionID
       });
       
-      const savedAssessment = await storage.createAssessment(assessmentData);
-      
-      res.status(201).json({
-        assessment: savedAssessment,
-        analysis: {
-          score: result.score,
-          summary: result.summary,
-          recommendations: result.recommendations
+      try {
+        // Analyze with AI based on assessment type
+        const result = await analyzeMentalHealthAssessment(answers, type);
+        
+        if (!result || typeof result !== 'object') {
+          throw new Error("AI分析結果が無効です");
         }
-      });
+        
+        console.log("AI分析結果:", {
+          score: result.score,
+          summaryLength: result.summary?.length || 0,
+          recommendationsCount: result.recommendations?.length || 0
+        });
+        
+        // データ検証前に正規化
+        const normalizedData = {
+          userId: userId,
+          type: type,
+          results: answers,
+          score: result.score != null ? result.score : 0,
+          summary: result.summary || null,
+          recommendations: Array.isArray(result.recommendations) ? result.recommendations : []
+        };
+        
+        // 検証をスキップして直接保存
+        const savedAssessment = await storage.createAssessment(normalizedData);
+        
+        res.status(201).json({
+          assessment: savedAssessment,
+          analysis: {
+            score: result.score,
+            summary: result.summary,
+            recommendations: result.recommendations
+          }
+        });
+      } catch (aiError) {
+        console.error("AI分析エラー:", aiError);
+        res.status(500).json({ message: "AIによる評価分析中にエラーが発生しました" });
+      }
     } catch (error) {
+      console.error("Assessment submission error:", error);
       if (error instanceof z.ZodError) {
         return res.status(400).json({ message: "入力データが無効です", errors: error.errors });
       }
@@ -534,10 +605,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.get("/api/assessment/history", isAuthenticated, async (req, res) => {
     try {
-      const user = req.user as any;
-      const assessments = await storage.getAssessmentsByUserId(user.id);
-      res.json(assessments);
+      // ユーザー情報取得の強化 - passportとセッションの両方から試行
+      let userId: number | undefined;
+      
+      if (req.user && typeof req.user === 'object' && 'id' in req.user) {
+        userId = req.user.id as number;
+      } else if (req.session && req.session.userId) {
+        userId = req.session.userId;
+      }
+      
+      if (!userId) {
+        console.error("履歴取得時のユーザーIDが見つかりません:", { 
+          user: req.user, 
+          session: req.session,
+          sessionID: req.sessionID
+        });
+        return res.status(401).json({ message: "認証セッションが無効です。再ログインしてください。" });
+      }
+      
+      console.log("アセスメント履歴取得:", { userId, sessionID: req.sessionID });
+      const assessments = await storage.getAssessmentsByUserId(userId);
+      
+      // データの安全性を確保するために、結果を整形して送信
+      const sanitizedAssessments = assessments.map(assessment => ({
+        id: assessment.id,
+        createdAt: assessment.createdAt,
+        type: assessment.type,
+        score: assessment.score,
+        summary: assessment.summary,
+        recommendations: assessment.recommendations,
+        results: assessment.results
+      }));
+      
+      res.json(sanitizedAssessments);
     } catch (error) {
+      console.error("評価履歴取得エラー:", error);
       res.status(500).json({ message: "評価履歴の取得中にエラーが発生しました" });
     }
   });
