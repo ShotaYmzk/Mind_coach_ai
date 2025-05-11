@@ -14,7 +14,6 @@ import Profile from "@/pages/profile";
 import Reservation from "@/pages/reservation";
 import Schedule from "@/pages/schedule";
 import Status from "@/pages/status";
-import Chatbot from "@/pages/chatbot";
 import { AuthProvider } from "@/lib/auth";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";

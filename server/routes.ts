@@ -709,15 +709,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const assessments = await storage.getAssessmentsByUserId(userId);
       
       // データの安全性を確保するために、結果を整形して送信
-      const sanitizedAssessments = assessments.map(assessment => ({
-        id: assessment.id,
-        createdAt: assessment.createdAt,
-        type: assessment.type,
-        score: assessment.score,
-        summary: assessment.summary,
-        recommendations: assessment.recommendations,
-        results: assessment.results
-      }));
+      const sanitizedAssessments = assessments.map(assessment => {
+        // assessmentの型がわからないため、JSON.parseでresultsから必要な情報を抽出
+        let summary = null;
+        let recommendations = [];
+        
+        if (typeof assessment.results === 'string') {
+          try {
+            const resultsObj = JSON.parse(assessment.results);
+            summary = resultsObj.summary || null;
+            recommendations = Array.isArray(resultsObj.recommendations) ? resultsObj.recommendations : [];
+          } catch (e) {
+            console.error("結果の解析エラー:", e);
+          }
+        } else if (assessment.results && typeof assessment.results === 'object') {
+          const resultsObj = assessment.results;
+          summary = resultsObj.summary || null;
+          recommendations = Array.isArray(resultsObj.recommendations) ? resultsObj.recommendations : [];
+        }
+        
+        return {
+          id: assessment.id,
+          createdAt: assessment.createdAt,
+          type: assessment.type,
+          score: assessment.score,
+          summary: summary,
+          recommendations: recommendations,
+          results: assessment.results
+        };
+      });
       
       res.json(sanitizedAssessments);
     } catch (error) {
