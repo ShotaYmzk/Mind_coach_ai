@@ -625,7 +625,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       try {
         // Analyze with AI based on assessment type
-        const result = await analyzeMentalHealthAssessment(answers, type);
+        const result = await analyzeMentalHealthAssessment(
+          type,
+          type === "general" ? mentalHealthQuestions : 
+            type === "depression" ? depressionQuestions :
+            type === "anxiety" ? anxietyQuestions :
+            type === "stress" ? stressQuestions :
+            burnoutQuestions,
+          Object.values(answers)
+        );
         
         if (!result || typeof result !== 'object') {
           throw new Error("AI分析結果が無効です");

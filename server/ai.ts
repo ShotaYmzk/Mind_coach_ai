@@ -6,7 +6,7 @@ const genAI = new GoogleGenerativeAI(process.env.GOOGLE_API_KEY || "dummy-key");
 // Helper function to create a new Gemini model instance with safety settings
 function getGeminiModel() {
   return genAI.getGenerativeModel({
-    model: "gemini-1.5-pro", // Using Gemini 1.5 Pro as it's the most capable model
+    model: "gemini-pro", // 無料で使用可能なモデル
     safetySettings: [
       {
         category: HarmCategory.HARM_CATEGORY_HARASSMENT,
@@ -531,7 +531,7 @@ export async function getSimpleChatbotResponse(
 
     // 最も基本的なバージョンのモデルを使用
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.0-pro", // 無料で使用可能なモデル
+      model: "gemini-pro", // 無料で使用可能な正しいモデル名
       safetySettings: [
         {
           category: HarmCategory.HARM_CATEGORY_HARASSMENT,
