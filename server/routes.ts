@@ -679,6 +679,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // 管理者用API - 予約の詳細を更新
+  app.patch("/api/admin/reservations/:id", isAdmin, async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, meetingUrl, notes } = req.body;
+      
+      if (isNaN(id)) {
+        return res.status(400).json({ message: "有効な予約IDが必要です" });
+      }
+      
+      const reservation = await storage.getReservationById(id);
+      if (!reservation) {
+        return res.status(404).json({ message: "予約が見つかりません" });
+      }
+      
+      let updatedReservation = reservation;
+      
+      // ステータス更新
+      if (status && typeof status === "string") {
+        // 許可されたステータスの確認
+        const allowedStatuses = ["pending", "confirmed", "canceled", "completed"];
+        if (!allowedStatuses.includes(status)) {
+          return res.status(400).json({ message: "無効なステータスです" });
+        }
+        
+        updatedReservation = await storage.updateReservationStatus(id, status);
+      }
+      
+      // ミーティングURL更新
+      if (meetingUrl !== undefined) {
+        updatedReservation = await storage.updateReservationMeetingUrl(id, meetingUrl);
+      }
+      
+      // メモ更新
+      if (notes !== undefined) {
+        updatedReservation = await storage.updateReservationNotes(id, notes);
+      }
+      
+      res.json(updatedReservation);
+    } catch (error) {
+      console.error("予約更新エラー:", error);
+      res.status(500).json({ message: "予約の更新中にエラーが発生しました" });
+    }
+  });
+  
+  // 管理者用API - 予約ステータスを更新
   app.patch("/api/admin/reservations/:id/status", isAdmin, async (req, res) => {
     try {
       const id = parseInt(req.params.id);

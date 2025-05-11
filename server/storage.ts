@@ -58,6 +58,8 @@ export interface IStorage {
   getReservationsByUserId(userId: number): Promise<Reservation[]>;
   getReservationById(id: number): Promise<Reservation | undefined>;
   updateReservationStatus(id: number, status: string): Promise<Reservation>;
+  updateReservationMeetingUrl(id: number, meetingUrl: string): Promise<Reservation>;
+  updateReservationNotes(id: number, notes: string): Promise<Reservation>;
   
   // Coach methods
   createCoach(coach: InsertCoach): Promise<Coach>;
@@ -373,6 +375,28 @@ export class MemStorage implements IStorage {
     }
     
     const updatedReservation: Reservation = { ...reservation, status };
+    this.reservations.set(id, updatedReservation);
+    return updatedReservation;
+  }
+  
+  async updateReservationMeetingUrl(id: number, meetingUrl: string): Promise<Reservation> {
+    const reservation = this.reservations.get(id);
+    if (!reservation) {
+      throw new Error(`Reservation with id ${id} not found`);
+    }
+    
+    const updatedReservation: Reservation = { ...reservation, meetingUrl };
+    this.reservations.set(id, updatedReservation);
+    return updatedReservation;
+  }
+  
+  async updateReservationNotes(id: number, notes: string): Promise<Reservation> {
+    const reservation = this.reservations.get(id);
+    if (!reservation) {
+      throw new Error(`Reservation with id ${id} not found`);
+    }
+    
+    const updatedReservation: Reservation = { ...reservation, notes };
     this.reservations.set(id, updatedReservation);
     return updatedReservation;
   }
