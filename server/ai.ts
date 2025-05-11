@@ -491,7 +491,7 @@ export async function getChatResponse(
     const model = getGeminiModel();
     
     // System prompt to guide Gemini's behavior
-    const systemPrompt = "あなたはMindCoach AIというメンタルヘルスアプリのコーチです。共感的で支持的な姿勢でユーザーをサポートします。メンタルヘルスのアドバイスを提供する際は、科学的な根拠に基づいた情報を心がけ、ユーザーの感情に寄り添いながらも、前向きな考え方や具体的な対処法を提案してください。医学的診断や治療は提供せず、深刻な問題の場合は専門家への相談を勧めます。";
+    const systemPrompt = "あなたはメンタルAIというメンタルヘルスアプリのコーチです。共感的で支持的な姿勢でユーザーをサポートします。メンタルヘルスのアドバイスを提供する際は、科学的な根拠に基づいた情報を心がけ、ユーザーの感情に寄り添いながらも、前向きな考え方や具体的な対処法を提案してください。医学的診断や治療は提供せず、深刻な問題の場合は専門家への相談を勧めます。";
     
     // Format conversation history for Gemini
     let formattedHistory = "";
@@ -508,6 +508,78 @@ export async function getChatResponse(
   } catch (error) {
     console.error("Error getting chat response:", error);
     return "申し訳ありません。エラーが発生しました。しばらくしてからもう一度お試しください。";
+  }
+}
+
+/**
+ * シンプルなチャットボット用の関数 - Google AIを使用
+ * 
+ * @param message ユーザーからのメッセージ
+ * @param history 過去の会話履歴（オプション）
+ * @returns AIの応答
+ */
+export async function getSimpleChatbotResponse(
+  message: string,
+  history: { isUser: boolean; content: string }[] = []
+): Promise<string> {
+  try {
+    // APIキーの確認
+    if (!process.env.GOOGLE_API_KEY) {
+      console.error("GOOGLE_API_KEYが設定されていません");
+      return "API設定エラーが発生しました。システム管理者にお問い合わせください。";
+    }
+
+    // 最も基本的なバージョンのモデルを使用
+    const model = genAI.getGenerativeModel({
+      model: "gemini-1.0-pro", // 無料で使用可能なモデル
+      safetySettings: [
+        {
+          category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+        {
+          category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+          threshold: HarmBlockThreshold.BLOCK_MEDIUM_AND_ABOVE,
+        },
+      ],
+    });
+
+    // システムプロンプト設定
+    const systemPrompt = `あなたは「メンタルAI」という日本のAIカウンセラーサービスのチャットボットです。
+ユーザーのメンタルヘルスに関する基本的な質問に日本語で答えてください。
+専門的なカウンセリングや治療的なアドバイスは提供せず、深刻な症状がある場合は専門家に相談するよう促してください。
+返答は簡潔で、共感的かつ前向きな表現を心がけてください。
+日常的な会話や気軽な質問にも対応し、ユーザーの気分を明るくするような会話を心がけてください。
+返答は最大300文字程度に抑えてください。`;
+
+    // 会話履歴をフォーマット（最大5件まで）
+    const recentHistory = history.slice(-5);
+    let formattedMessages = "";
+    
+    recentHistory.forEach(msg => {
+      const role = msg.isUser ? "ユーザー" : "AI";
+      formattedMessages += `${role}: ${msg.content}\n`;
+    });
+    
+    // プロンプトの構築
+    const prompt = `${systemPrompt}\n\n会話履歴:\n${formattedMessages}\nユーザー: ${message}\nAI:`;
+    
+    console.log("チャットボットにリクエスト送信中...");
+    
+    // 応答の生成
+    const result = await model.generateContent({
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      generationConfig: {
+        temperature: 0.7,
+        maxOutputTokens: 800,
+      },
+    });
+    
+    const response = result.response;
+    return response.text() || "応答を生成できませんでした。";
+  } catch (error) {
+    console.error("チャットボットエラー:", error);
+    return "申し訳ありませんが、応答の生成中にエラーが発生しました。しばらくしてからもう一度お試しください。";
   }
 }
 

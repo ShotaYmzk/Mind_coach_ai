@@ -46,15 +46,30 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getMoodEntriesByUserId(userId: number, limit?: number): Promise<MoodEntry[]> {
-    let query = db.select().from(moodEntries)
-      .where(eq(moodEntries.userId, userId))
-      .orderBy(desc(moodEntries.createdAt));
-
-    if (limit) {
-      return await query.limit(limit);
+    try {
+      // SQL クエリを使用して直接カラム名を指定（notes を note として取得）
+      const query = `
+        SELECT 
+          id, 
+          user_id as "userId", 
+          rating, 
+          notes as "note",  -- 'notes' カラムを 'note' として取得
+          created_at as "createdAt"
+        FROM mood_entries
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+        ${limit ? `LIMIT ${limit}` : ''}
+      `;
+      
+      const result = await db.execute(query, [userId]);
+      return result.rows.map(row => ({
+        ...row,
+        triggers: null,  // 'triggers' カラムがない場合のデフォルト値
+      }));
+    } catch (error) {
+      console.error("気分エントリ取得エラー:", error);
+      throw error;
     }
-
-    return await query;
   }
 
   // Goal methods
@@ -119,9 +134,33 @@ export class DatabaseStorage implements IStorage {
   }
 
   async getAssessmentsByUserId(userId: number): Promise<Assessment[]> {
-    return await db.select().from(assessments)
-      .where(eq(assessments.userId, userId))
-      .orderBy(desc(assessments.createdAt));
+    try {
+      // SQL クエリを使用して直接カラム名を指定
+      const query = `
+        SELECT 
+          id, 
+          user_id as "userId",
+          type,
+          results,
+          score,
+          created_at as "createdAt"
+        FROM assessments
+        WHERE user_id = $1
+        ORDER BY created_at DESC
+      `;
+      
+      const result = await db.execute(query, [userId]);
+      
+      // 不足しているフィールドに対してデフォルト値を設定
+      return result.rows.map(row => ({
+        ...row,
+        summary: null,           // summary カラムがない場合のデフォルト値
+        recommendations: null    // recommendations カラムがない場合のデフォルト値
+      }));
+    } catch (error) {
+      console.error("アセスメント履歴取得エラー:", error);
+      throw error;
+    }
   }
 
   // Resource methods
