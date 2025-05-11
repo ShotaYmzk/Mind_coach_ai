@@ -85,12 +85,12 @@ export default function MoodTracker() {
     }
   }, [moodEntries]);
 
-  // Emoji based on mood value
+  // Emoji based on mood value (1-10 scale)
   function getMoodEmoji(value: number) {
-    if (value <= 2) return "😔";
-    if (value <= 4) return "😐";
-    if (value <= 7) return "🙂";
-    return "😄";
+    if (value <= 3) return "😔"; // 悪い気分
+    if (value <= 5) return "😐"; // やや悪い気分
+    if (value <= 8) return "🙂"; // やや良い気分
+    return "😄";                 // 良い気分
   }
 
   return (
@@ -116,10 +116,22 @@ export default function MoodTracker() {
             <div className="mt-4">
               <p className="text-sm text-neutral-600 mb-2 text-center">今日の気分はいかがですか？</p>
               <div className="flex items-center justify-between mx-auto max-w-md mb-2">
-                <span className="text-xl">{getMoodEmoji(1)}</span>
-                <span className="text-xl">{getMoodEmoji(4)}</span>
-                <span className="text-xl">{getMoodEmoji(7)}</span>
-                <span className="text-xl">{getMoodEmoji(10)}</span>
+                <span className="text-xl flex flex-col items-center gap-1">
+                  {getMoodEmoji(1)}
+                  <span className="text-xs text-neutral-500">1</span>
+                </span>
+                <span className="text-xl flex flex-col items-center gap-1">
+                  {getMoodEmoji(4)}
+                  <span className="text-xs text-neutral-500">4</span>
+                </span>
+                <span className="text-xl flex flex-col items-center gap-1">
+                  {getMoodEmoji(7)}
+                  <span className="text-xs text-neutral-500">7</span>
+                </span>
+                <span className="text-xl flex flex-col items-center gap-1">
+                  {getMoodEmoji(10)}
+                  <span className="text-xs text-neutral-500">10</span>
+                </span>
               </div>
               <div className="mb-4">
                 <Slider

@@ -29,7 +29,7 @@ function Router() {
           <Route path="/" component={Home} />
           <Route path="/login" component={Login} />
           <Route path="/register" component={Register} />
-          <Route path="/coaching" component={Coaching} />
+          <Route path="/coaching" component={Coaching} /> 
           <Route path="/assessment" component={Assessment} />
           <Route path="/admin" component={Admin} />
           <Route path="/profile" component={Profile} />
