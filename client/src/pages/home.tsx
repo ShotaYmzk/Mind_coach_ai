@@ -86,7 +86,7 @@ export default function Home() {
           iconTextColor="text-primary-500"
           footer={{
             text: "詳細を見る",
-            link: "/profile",
+            link: "/status",
           }}
         />
         
