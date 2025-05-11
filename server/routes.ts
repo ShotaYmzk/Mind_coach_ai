@@ -294,10 +294,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       sessionID: req.sessionID,
       hasSession: !!req.session,
       isAuthenticated: req.isAuthenticated(),
-      cookies: req.headers.cookie,
-      userId: req.user ? (req.user as any).id : null
+      cookies: req.headers.cookie
     });
     
+    // 開発環境であればテストユーザーを返す
+    if (process.env.NODE_ENV === 'development') {
+      const defaultUser = {
+        id: 1,
+        username: 'testuser',
+        name: 'テストユーザー',
+        email: 'test@example.com',
+        planType: 'standard',
+        location: '東京',
+        avatarUrl: null
+      };
+      
+      console.log("開発モード: デフォルトユーザーを返します", defaultUser);
+      return res.json(defaultUser);
+    }
+    
+    // 通常の認証チェック
     if (!req.isAuthenticated() || !req.user) {
       return res.status(401).json({ message: "認証されていません" });
     }
@@ -310,7 +326,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       email: user.email,
       location: user.location,
       avatarUrl: user.avatarUrl,
-      planType: user.planType || "free" // デフォルト値を設定
+      planType: user.planType || "free"
     });
   });
   
