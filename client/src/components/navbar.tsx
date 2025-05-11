@@ -21,6 +21,7 @@ export default function Navbar() {
     { name: "ホーム", href: "/" },
     { name: "コーチング", href: "/coaching" },
     { name: "診断・分析", href: "/assessment" },
+    { name: "状態分析", href: "/status" },
     { name: "人間コーチ予約", href: "/reservation" },
   ];
 

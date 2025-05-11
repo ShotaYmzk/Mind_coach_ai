@@ -12,6 +12,7 @@ import Assessment from "@/pages/assessment";
 import Admin from "@/pages/admin";
 import Profile from "@/pages/profile";
 import Reservation from "@/pages/reservation";
+import Status from "@/pages/status";
 import { AuthProvider } from "@/lib/auth";
 import Footer from "@/components/footer";
 import Navbar from "@/components/navbar";
@@ -33,6 +34,7 @@ function Router() {
           <Route path="/reservation" component={Reservation} />
           <Route path="/schedule" component={Reservation} />
           <Route path="/settings" component={Profile} />
+          <Route path="/status" component={Status} />
           <Route component={NotFound} />
         </Switch>
       </div>
