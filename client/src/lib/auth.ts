@@ -68,6 +68,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         title: "ログイン成功",
         description: `${userData.name}さん、おかえりなさい！`,
       });
+      // スクロール位置をリセットしてからリダイレクト
+      window.scrollTo(0, 0);
       setLocation("/");
     } catch (error) {
       console.error("Login failed:", error);
@@ -87,8 +89,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(newUser);
       toast({
         title: "登録成功",
-        description: `${newUser.name}さん、ようこそMindCoach AIへ！`,
+        description: `${newUser.name}さん、ようこそメンタルAIへ！`,
       });
+      // スクロール位置をリセットしてからリダイレクト
+      window.scrollTo(0, 0);
       setLocation("/");
     } catch (error) {
       console.error("Registration failed:", error);

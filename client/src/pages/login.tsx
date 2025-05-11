@@ -27,6 +27,8 @@ export default function Login() {
   // ユーザーが既にログインしている場合はホームページにリダイレクト
   useEffect(() => {
     if (user) {
+      // スクロール位置をリセットしてからリダイレクト
+      window.scrollTo(0, 0);
       setLocation("/");
     }
   }, [user, setLocation]);

@@ -368,8 +368,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       // データ検証 - 基本的なチェック
-      if (isNaN(moodData.rating) || moodData.rating < 1 || moodData.rating > 5) {
-        return res.status(400).json({ message: "気分の値は1〜5の範囲で指定してください" });
+      if (isNaN(moodData.rating) || moodData.rating < 1 || moodData.rating > 10) {
+        return res.status(400).json({ message: "気分の値は1〜10の範囲で指定してください" });
       }
       
       // データの保存

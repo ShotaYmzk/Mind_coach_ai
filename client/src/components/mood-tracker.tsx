@@ -24,7 +24,7 @@ import { format } from "date-fns";
 export default function MoodTracker() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [currentMood, setCurrentMood] = useState<number>(7);
+  const [currentMood, setCurrentMood] = useState<number>(3);
   const [note, setNote] = useState<string>("");
   const [triggers, setTriggers] = useState<string>("");
   const [selectedMood, setSelectedMood] = useState<any>(null);
