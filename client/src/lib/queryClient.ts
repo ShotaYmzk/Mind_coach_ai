@@ -12,12 +12,33 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<Response> {
-  const res = await fetch(url, {
+  const options: RequestInit = {
     method,
-    headers: data ? { "Content-Type": "application/json" } : {},
+    headers: data ? { 
+      "Content-Type": "application/json",
+      "X-Requested-With": "XMLHttpRequest"
+    } : {
+      "X-Requested-With": "XMLHttpRequest"
+    },
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
-  });
+    mode: "cors",
+    cache: "no-cache",
+    redirect: "follow"
+  };
+
+  console.log(`APIリクエスト送信: ${method} ${url}`);
+  const res = await fetch(url, options);
+  console.log(`APIレスポンス: ${res.status} ${res.statusText}`);
+
+  if (!res.ok) {
+    try {
+      const errorData = await res.json();
+      console.error("APIエラー:", errorData);
+    } catch (e) {
+      console.error("APIエラーの詳細を取得できませんでした");
+    }
+  }
 
   await throwIfResNotOk(res);
   return res;
@@ -29,16 +50,38 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const res = await fetch(queryKey[0] as string, {
+    console.log(`クエリ実行: ${queryKey[0]}`);
+    
+    const requestOptions: RequestInit = {
       credentials: "include",
-    });
+      headers: {
+        "X-Requested-With": "XMLHttpRequest",
+        "Accept": "application/json"
+      },
+      mode: "cors",
+      cache: "no-cache"
+    };
+    
+    const res = await fetch(queryKey[0] as string, requestOptions);
+    console.log(`クエリレスポンス: ${queryKey[0]} - ${res.status}`);
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+      console.log("認証エラー - 空のレスポンスを返します", queryKey[0]);
       return null;
     }
 
+    if (!res.ok) {
+      try {
+        const errorText = await res.text();
+        console.error(`クエリエラー: ${queryKey[0]} - ${res.status}`, errorText);
+      } catch (e) {
+        console.error(`クエリエラー: ${queryKey[0]} - ${res.status}`, "エラー詳細を取得できませんでした");
+      }
+    }
+
     await throwIfResNotOk(res);
-    return await res.json();
+    const data = await res.json();
+    return data;
   };
 
 export const queryClient = new QueryClient({

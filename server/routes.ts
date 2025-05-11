@@ -159,24 +159,88 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.post("/api/auth/login", passport.authenticate("local"), (req, res) => {
-    const user = req.user as any;
-    res.json({
-      id: user.id,
-      username: user.username,
-      name: user.name,
-      email: user.email
-    });
+  app.post("/api/auth/login", (req, res, next) => {
+    passport.authenticate("local", (err, user, info) => {
+      if (err) {
+        console.error("認証エラー:", err);
+        return next(err);
+      }
+      
+      if (!user) {
+        console.log("ログイン失敗:", info);
+        return res.status(401).json({ message: "ユーザー名またはパスワードが間違っています" });
+      }
+      
+      req.login(user, (loginErr) => {
+        if (loginErr) {
+          console.error("セッション作成エラー:", loginErr);
+          return next(loginErr);
+        }
+        
+        console.log("ログイン成功:", {
+          userId: user.id,
+          sessionID: req.sessionID,
+          cookie: req.session?.cookie
+        });
+        
+        // セッションを確実に保存してから応答を返す
+        req.session.save((saveErr) => {
+          if (saveErr) {
+            console.error("セッション保存エラー:", saveErr);
+            return next(saveErr);
+          }
+          
+          res.json({
+            id: user.id,
+            username: user.username,
+            name: user.name,
+            email: user.email,
+            planType: user.planType
+          });
+        });
+      });
+    })(req, res, next);
   });
   
   app.post("/api/auth/logout", (req, res) => {
-    req.logout(() => {
-      res.json({ message: "ログアウトしました" });
+    console.log("ログアウトリクエスト:", {
+      sessionID: req.sessionID,
+      isAuthenticated: req.isAuthenticated()
+    });
+    
+    if (!req.isAuthenticated()) {
+      return res.json({ message: "すでにログアウトしています" });
+    }
+    
+    req.logout((err) => {
+      if (err) {
+        console.error("ログアウトエラー:", err);
+        return res.status(500).json({ message: "ログアウト中にエラーが発生しました" });
+      }
+      
+      // セッションを破棄する
+      req.session.destroy((destroyErr) => {
+        if (destroyErr) {
+          console.error("セッション破棄エラー:", destroyErr);
+          return res.status(500).json({ message: "セッション破棄中にエラーが発生しました" });
+        }
+        
+        res.clearCookie("connect.sid");
+        res.json({ message: "ログアウトしました" });
+      });
     });
   });
   
   app.get("/api/auth/current-user", (req, res) => {
-    if (!req.user) {
+    console.log("現在のユーザー確認リクエスト:", {
+      sessionID: req.sessionID,
+      hasSession: !!req.session,
+      isAuthenticated: req.isAuthenticated(),
+      cookies: req.headers.cookie,
+      userId: req.user ? (req.user as any).id : null
+    });
+    
+    if (!req.isAuthenticated() || !req.user) {
       return res.status(401).json({ message: "認証されていません" });
     }
     
@@ -188,7 +252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       email: user.email,
       location: user.location,
       avatarUrl: user.avatarUrl,
-      planType: user.planType
+      planType: user.planType || "free" // デフォルト値を設定
     });
   });
   
