@@ -34,8 +34,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.use(
     session({
       secret: process.env.SESSION_SECRET || "mindcoach-ai-secret",
-      resave: true,
-      saveUninitialized: true,
+      resave: false,
+      saveUninitialized: false,
       store: new MemoryStoreSession({
         checkPeriod: 86400000 // 24 hours
       }),
@@ -85,8 +85,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         console.log("User not found in database:", id);
         return done(null, false);
       }
+      
+      // パスワードを除外したユーザー情報を返す（セキュリティ対策）
+      const { password, ...userWithoutPassword } = user;
       console.log("User deserialized successfully:", user.id);
-      done(null, user);
+      done(null, userWithoutPassword);
     } catch (error) {
       console.error("Error deserializing user:", error);
       done(error);
